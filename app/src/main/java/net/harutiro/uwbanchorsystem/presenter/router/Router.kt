@@ -8,6 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import net.harutiro.uwbanchorsystem.R
+import net.harutiro.uwbanchorsystem.presenter.screen.home.HomeScreen
 
 @Composable
 fun Router(
@@ -25,6 +26,7 @@ fun Router(
         modifier = modifier.fillMaxSize(),
     ) {
         composable(BottomNavigationBarRoute.HOME.route) {
+            HomeScreen()
             changeTopBarTitle(context.getString(BottomNavigationBarRoute.HOME.title))
         }
     }

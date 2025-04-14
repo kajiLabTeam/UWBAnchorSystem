@@ -23,6 +23,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import net.harutiro.uwbanchorsystem.R
+import net.harutiro.uwbanchorsystem.presenter.components.CustomTopAppBar
 import net.harutiro.uwbanchorsystem.presenter.router.BottomNavigationBarRoute
 import net.harutiro.uwbanchorsystem.presenter.router.Router
 
@@ -45,18 +46,8 @@ fun MainScreen() {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = topBarTitle,
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.primary,
-                    ),
+            CustomTopAppBar(
+                topBarTitle = topBarTitle
             )
         },
         snackbarHost = { CustomSnackbarHost(hostState = hostState, isErrorMessage = isErrorMessage) },
