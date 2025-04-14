@@ -1,4 +1,4 @@
-package net.harutiro.uwbanchorsystem.ui.theme
+package net.harutiro.uwbanchorsystem.presenter.theme
 
 import android.app.Activity
 import android.os.Build
