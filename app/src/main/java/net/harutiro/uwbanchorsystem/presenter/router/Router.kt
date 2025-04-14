@@ -33,5 +33,5 @@ fun Router(
 }
 
 enum class BottomNavigationBarRoute(val route: String, val title: Int) {
-    HOME("search", R.string.home),
+    HOME("home", R.string.home),
 }
