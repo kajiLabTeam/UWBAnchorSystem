@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 fun CustomOutlinedTextField(
+    modifier: Modifier = Modifier,
     value: String,
     placeholder: String = "",
     onChange: (String) -> Unit,
@@ -51,7 +52,6 @@ fun CustomOutlinedTextField(
     imeAction: ImeAction = ImeAction.Next,
     keyboardType: KeyboardType = KeyboardType.Text,
     label: String,
-    modifier: Modifier = Modifier
 ) {
 
     var showPassword by rememberSaveable { mutableStateOf(false) }
