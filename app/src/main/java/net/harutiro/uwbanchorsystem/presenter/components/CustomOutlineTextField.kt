@@ -103,11 +103,11 @@ fun CustomOutlinedTextField(
                 imeAction = imeAction
             ),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedTextColor = Color.Gray,
-                unfocusedBorderColor = Color.Gray,
-                focusedTextColor = Color.Blue,
-                focusedBorderColor = Color.Blue,
-                errorBorderColor = Color.Red,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                errorBorderColor = MaterialTheme.colorScheme.error,
             ),
             shape = RoundedCornerShape(10.dp),
             visualTransformation = if (isPassword){
