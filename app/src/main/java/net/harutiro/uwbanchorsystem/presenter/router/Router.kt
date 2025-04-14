@@ -26,7 +26,7 @@ fun Router(
         modifier = modifier.fillMaxSize(),
     ) {
         composable(BottomNavigationBarRoute.HOME.route) {
-            HomeScreen()
+            HomeScreen(modifier = modifier)
             changeTopBarTitle(context.getString(BottomNavigationBarRoute.HOME.title))
         }
     }
