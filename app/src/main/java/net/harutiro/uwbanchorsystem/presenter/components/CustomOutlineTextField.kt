@@ -33,7 +33,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
+/***
+ * テキストフィールドのコンポーネント
+ *
+ * この記事を参考にして記述をしました
+ * https://medium.com/@dimasoktanugraha47/mastering-android-jetpack-compose-textfield-and-validation-3abd17c75952
+ */
 @Composable
 fun TextFieldValidation(
     value: String,
