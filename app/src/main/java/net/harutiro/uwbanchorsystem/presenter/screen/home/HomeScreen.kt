@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -24,7 +25,7 @@ fun HomeScreen(
     viewModel:HomeViewModel = viewModel(),
 ) {
 
-    var fileName by rememberSaveable { mutableStateOf("") }
+    var fileName = viewModel.fileName.collectAsState().value
 
     Column(
         modifier = modifier
