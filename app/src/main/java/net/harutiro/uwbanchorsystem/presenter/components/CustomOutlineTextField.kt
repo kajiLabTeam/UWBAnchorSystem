@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
  * https://medium.com/@dimasoktanugraha47/mastering-android-jetpack-compose-textfield-and-validation-3abd17c75952
  */
 @Composable
-fun TextFieldValidation(
+fun CustomOutlinedTextField(
     value: String,
     placeholder: String = "",
     onChange: (String) -> Unit,
@@ -132,7 +132,7 @@ fun TextFieldValidation(
 fun TextFieldValidationPreview() {
     var password by rememberSaveable { mutableStateOf("") }
 
-    TextFieldValidation(
+    CustomOutlinedTextField(
         value = password,
         placeholder = "", // hintメッセージ
         label = "ラベル",
