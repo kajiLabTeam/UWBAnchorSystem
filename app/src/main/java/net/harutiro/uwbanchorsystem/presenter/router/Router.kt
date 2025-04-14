@@ -12,6 +12,7 @@ import net.harutiro.uwbanchorsystem.R
 @Composable
 fun Router(
     toBackScreen: () -> Unit,
+    showSnackbar: (String, Boolean) -> Unit,
     changeTopBarTitle: (String) -> Unit,
     navController: NavHostController,
     modifier: Modifier = Modifier,
