@@ -38,9 +38,9 @@ fun HomeScreen(
             onChange = {
                 fileName = it
             },
-            isError = false,
+            isError = fileName.isNotEmpty() && !viewModel.isValidFileName(fileName),
             icon = Icons.Filled.Description,
-            errorMessage = "Error Message",
+            errorMessage = "ファイル名に無効な文字が含まれています",
             isPassword = false
         )
     }
