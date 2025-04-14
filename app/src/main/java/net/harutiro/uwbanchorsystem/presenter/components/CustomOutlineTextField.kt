@@ -53,7 +53,6 @@ fun CustomOutlinedTextField(
     keyboardType: KeyboardType = KeyboardType.Text,
     label: String,
 ) {
-
     var showPassword by rememberSaveable { mutableStateOf(false) }
 
     Column(
@@ -78,50 +77,58 @@ fun CustomOutlinedTextField(
                     icon,
                     contentDescription = "Text FieldInput",
                     tint = Color.Gray,
-                    modifier = Modifier
-                        .size(24.dp)
+                    modifier =
+                        Modifier
+                            .size(24.dp),
                 )
             },
             trailingIcon = {
-                if (isPassword){
+                if (isPassword) {
                     Icon(
                         if (showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                         contentDescription = if (showPassword) "Show Password" else "Hide Password",
                         tint = Color.Gray,
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clickable { showPassword = !showPassword }
+                        modifier =
+                            Modifier
+                                .size(24.dp)
+                                .clickable { showPassword = !showPassword },
                     )
-                }else {
+                } else {
                     null
                 }
             },
-            modifier = Modifier
-                .fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = keyboardType,
-                imeAction = imeAction
-            ),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                errorBorderColor = MaterialTheme.colorScheme.error,
-            ),
+            modifier =
+                Modifier
+                    .fillMaxWidth(),
+            keyboardOptions =
+                KeyboardOptions(
+                    keyboardType = keyboardType,
+                    imeAction = imeAction,
+                ),
+            colors =
+                OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    errorBorderColor = MaterialTheme.colorScheme.error,
+                ),
             shape = RoundedCornerShape(10.dp),
-            visualTransformation = if (isPassword){
-                if (showPassword) VisualTransformation.None else PasswordVisualTransformation()
-            } else { VisualTransformation.None },
-            isError = isError
+            visualTransformation =
+                if (isPassword) {
+                    if (showPassword) VisualTransformation.None else PasswordVisualTransformation()
+                } else {
+                    VisualTransformation.None
+                },
+            isError = isError,
         )
-        if (isError){
+        if (isError) {
             Text(
                 text = errorMessage,
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.Red,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 2.dp),
-                textAlign = TextAlign.Start
+                textAlign = TextAlign.Start,
             )
         }
     }
@@ -134,7 +141,8 @@ fun TextFieldValidationPreview() {
 
     CustomOutlinedTextField(
         value = password,
-        placeholder = "", // hintメッセージ
+        // hintメッセージ
+        placeholder = "",
         label = "ラベル",
         onChange = {
             password = it
@@ -142,6 +150,6 @@ fun TextFieldValidationPreview() {
         isError = true,
         icon = Icons.Filled.AccessAlarms,
         errorMessage = "Error Message",
-        isPassword = false
+        isPassword = false,
     )
 }

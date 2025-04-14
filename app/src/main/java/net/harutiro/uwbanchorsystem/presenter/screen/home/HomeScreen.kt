@@ -21,19 +21,20 @@ import net.harutiro.uwbanchorsystem.presenter.components.CustomTopAppBar
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    viewModel:HomeViewModel = viewModel(),
+    viewModel: HomeViewModel = viewModel(),
 ) {
-
     var fileName by remember { mutableStateOf("") }
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(16.dp),
     ) {
         CustomOutlinedTextField(
             value = fileName,
-            placeholder = "", // hintメッセージ
+            // hintメッセージ
+            placeholder = "",
             label = "センサーデータのファイル名",
             onChange = {
                 fileName = it
@@ -41,7 +42,7 @@ fun HomeScreen(
             isError = fileName.isNotEmpty() && !viewModel.isValidFileName(fileName),
             icon = Icons.Filled.Description,
             errorMessage = "ファイル名に無効な文字が含まれています",
-            isPassword = false
+            isPassword = false,
         )
     }
 }
@@ -49,14 +50,14 @@ fun HomeScreen(
 @Preview(
     showBackground = true,
     device = "id:pixel_8a",
-    showSystemUi = true
+    showSystemUi = true,
 )
 @Composable
 fun HomeScreenPreview() {
     Scaffold(
         topBar = {
             CustomTopAppBar("ホームスクリーンプレビュー")
-        }
+        },
     ) { innerPadding ->
         HomeScreen(modifier = Modifier.padding(innerPadding))
     }

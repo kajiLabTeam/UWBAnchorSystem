@@ -7,9 +7,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,20 +15,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import net.harutiro.uwbanchorsystem.R
 import net.harutiro.uwbanchorsystem.presenter.components.CustomTopAppBar
-import net.harutiro.uwbanchorsystem.presenter.router.BottomNavigationBarRoute
 import net.harutiro.uwbanchorsystem.presenter.router.Router
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
-
     val context = LocalContext.current
     val appName = context.getString(R.string.app_name)
 
@@ -47,7 +39,7 @@ fun MainScreen() {
     Scaffold(
         topBar = {
             CustomTopAppBar(
-                topBarTitle = topBarTitle
+                topBarTitle = topBarTitle,
             )
         },
         snackbarHost = { CustomSnackbarHost(hostState = hostState, isErrorMessage = isErrorMessage) },

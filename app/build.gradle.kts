@@ -24,7 +24,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -59,9 +59,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     //  USBSerial
-    implementation (libs.usb.serial.for1.android)
+    implementation(libs.usb.serial.for1.android)
 
     // JetpackCompose
-    implementation (libs.androidx.navigation.compose)
-    implementation (libs.androidx.material.icons.extended)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.material.icons.extended)
+    testImplementation(kotlin("test"))
 }
