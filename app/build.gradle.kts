@@ -62,6 +62,5 @@ dependencies {
 
     // JetpackCompose
     implementation (libs.androidx.navigation.compose)
-    implementation (libs.androidx.activity.compose)
     implementation (libs.androidx.material.icons.extended)
 }
