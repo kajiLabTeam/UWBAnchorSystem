@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import net.harutiro.uwbanchorsystem.ui.theme.UWBAnchorSystemTheme
+import net.harutiro.uwbanchorsystem.presenter.theme.UWBAnchorSystemTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
