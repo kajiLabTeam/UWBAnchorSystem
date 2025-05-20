@@ -7,6 +7,7 @@ import net.harutiro.uwbanchorsystem.feature.serial.Entity.BlinkPacketField
 import net.harutiro.uwbanchorsystem.feature.serial.Entity.SyncPacket
 import net.harutiro.uwbanchorsystem.feature.serial.Entity.UWBResult
 import net.harutiro.uwbanchorsystem.feature.serial.api.SerialApi
+import net.harutiro.uwbanchorsystem.feature.utils.DateUtils
 import java.math.BigInteger
 
 class SerialRepository {
@@ -113,7 +114,7 @@ class SerialRepository {
                         println(measPdoa2)
 
                         return UWBResult(
-                            time = 0,
+                            time = DateUtils.getTimeStamp(),
                             seqCount = seqCount,
                             nLos = measNLos,
                             distance = measDistance,

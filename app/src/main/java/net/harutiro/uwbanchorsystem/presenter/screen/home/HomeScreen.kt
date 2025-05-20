@@ -10,6 +10,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,8 +30,11 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel(),
 ) {
     var fileName by remember { mutableStateOf("") }
-    var resultMessage by remember { mutableStateOf("") }
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.connectDevice(context)
+    }
 
     Column(
         modifier =
@@ -54,33 +58,21 @@ fun HomeScreen(
 
         Button(
             onClick = {
-                val serialRepository = SerialRepository()
-                serialRepository.connectDevice(context)
-                serialRepository.startSession(
-                    onLineRead = { line ->
-                        if(line == null) return@startSession
-                        resultMessage = """
-                            nlos: ${line.nLos}
-                            distance: ${line.distance}
-                            elevation: ${line.elevation}
-                            azimuth: ${line.azimuth}
-                            elevationFom: ${line.elevationFom}
-                            rssi: ${line.rssi}
-                            pDoA1: ${line.pDoA1}
-                            pDoA2: ${line.pDoA2}
-                            seqCount: ${line.seqCount}
-                        """.trimIndent()
-                        Log.d("Main",line.toString())
-                    },
-                    onError = {
-
-                    }
-                )
+                viewModel.startSensing(context,fileName)
             }
         ){
-            Text(text = "センサーデータの変換")
+            Text(text = "センシング開始")
         }
-        Text("hello\n"+resultMessage)
+
+        Button(
+            onClick = {
+                val filePath = viewModel.stopSensing()
+                Log.d("Main","$filePath")
+            }
+        ){
+            Text(text="センシング終了")
+        }
+        Text(viewModel.resultMessage)
 
     }
 }
