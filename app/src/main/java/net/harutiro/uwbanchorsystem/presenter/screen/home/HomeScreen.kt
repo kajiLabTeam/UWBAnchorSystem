@@ -66,7 +66,7 @@ fun HomeScreen(
 
         Button(
             onClick = {
-                val filePath = viewModel.stopSensing()
+                val filePath = viewModel.stopSensing(context)
                 Log.d("Main","$filePath")
             }
         ){

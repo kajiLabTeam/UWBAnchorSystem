@@ -17,6 +17,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Minio API Configuration
+        buildConfigField("String", "MINIO_API_BASE_URL", "\"${project.property("MINIO_API_BASE_URL")}\"")
+        buildConfigField("String", "MINIO_API_USERNAME", "\"${project.property("MINIO_API_USERNAME")}\"")
+        buildConfigField("String", "MINIO_API_PASSWORD", "\"${project.property("MINIO_API_PASSWORD")}\"")
     }
 
     buildTypes {
@@ -37,6 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -65,4 +71,9 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material.icons.extended)
     testImplementation(kotlin("test"))
+
+    // http
+    implementation (libs.retrofit)
+    implementation (libs.logging.interceptor)
+    implementation (libs.converter.gson)
 }

@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import net.harutiro.uwbanchorsystem.feature.file.OtherFileStorageApi
+import net.harutiro.uwbanchorsystem.feature.http.MinioApiClient
 import net.harutiro.uwbanchorsystem.feature.serial.Entity.UWBResult
 import net.harutiro.uwbanchorsystem.feature.serial.repository.SerialRepository
 
@@ -61,14 +62,26 @@ class HomeViewModel : ViewModel() {
         )
     }
 
-    fun stopSensing():String {
-        val filePath = otherFileStorageApi?.filePath
-        otherFileStorageApi?.stop()
+    fun stopSensing(context: Context) {
+        val file = otherFileStorageApi?.stop()
         otherFileStorageApi = null
 
         serialRepository.stopSession()
 
-        return filePath ?: ""
+        val minioApiClient = MinioApiClient(context)
+        file?.let { notNullFile ->
+            minioApiClient.uploadFile(
+                file = notNullFile,
+                bucket = "uwb",
+                path = "sensing/",
+            ) { success, message ->
+                if (success) {
+                    resultMessage = "アップロード成功: $message"
+                } else {
+                    resultMessage = "アップロード失敗: $message"
+                }
+            }
+        }
     }
 
     fun addQueue(line: String){
