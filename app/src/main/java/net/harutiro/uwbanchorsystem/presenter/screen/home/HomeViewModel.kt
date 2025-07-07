@@ -11,6 +11,7 @@ import net.harutiro.uwbanchorsystem.feature.file.OtherFileStorageApi
 import net.harutiro.uwbanchorsystem.feature.http.MinioApiClient
 import net.harutiro.uwbanchorsystem.feature.serial.Entity.UWBResult
 import net.harutiro.uwbanchorsystem.feature.serial.repository.SerialRepository
+import net.harutiro.uwbanchorsystem.feature.utils.PreferencesManager
 
 class HomeViewModel : ViewModel() {
 
@@ -19,6 +20,19 @@ class HomeViewModel : ViewModel() {
     val queue: ArrayDeque<String> = ArrayDeque(listOf())
 
     var resultMessage by  mutableStateOf("")
+    var deviceName by mutableStateOf("")
+        private set
+
+    fun initializeDeviceName(context: Context) {
+        val preferencesManager = PreferencesManager.getInstance(context)
+        deviceName = preferencesManager.deviceName
+    }
+
+    fun updateDeviceName(context: Context, newDeviceName: String) {
+        deviceName = newDeviceName
+        val preferencesManager = PreferencesManager.getInstance(context)
+        preferencesManager.deviceName = newDeviceName
+    }
 
     fun connectDevice(context: Context){
         serialRepository.connectDevice(context)
@@ -90,5 +104,9 @@ class HomeViewModel : ViewModel() {
 
     fun isValidFileName(fileName: String): Boolean {
         return fileName.matches(Regex("[\\w\\-. ]+"))
+    }
+
+    fun isValidDeviceName(deviceName: String): Boolean {
+        return deviceName.isNotBlank() && deviceName.length in 1..20 && deviceName.matches(Regex("[\\w\\-. ]+"))
     }
 }
