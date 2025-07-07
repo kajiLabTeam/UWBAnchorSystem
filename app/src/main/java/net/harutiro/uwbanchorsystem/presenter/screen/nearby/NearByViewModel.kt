@@ -66,6 +66,10 @@ class NearByViewModel(private val nearByRepository: NearByRepository) : ViewMode
         )
     }
     
+    fun requestConnection(endpointId: String, deviceName: String) {
+        nearByRepository.requestConnection(endpointId, deviceName)
+    }
+    
     fun acceptConnection(endpointId: String) {
         nearByRepository.acceptConnection(endpointId)
     }

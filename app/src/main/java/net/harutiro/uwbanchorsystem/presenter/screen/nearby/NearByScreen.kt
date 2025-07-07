@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Wifi
@@ -54,7 +55,12 @@ fun NearByScreen(
 
         // 発見されたデバイスリスト
         if (uiState.discoveredDevices.isNotEmpty()) {
-            DiscoveredDevicesSection(devices = uiState.discoveredDevices)
+            DiscoveredDevicesSection(
+                devices = uiState.discoveredDevices,
+                onRequestConnection = { endpointId, deviceName ->
+                    viewModel.requestConnection(endpointId, deviceName)
+                }
+            )
         }
 
         // メッセージ送信エリア
@@ -171,7 +177,10 @@ private fun StatusCard(connectionState: String) {
 }
 
 @Composable
-private fun DiscoveredDevicesSection(devices: List<DiscoveredDevice>) {
+private fun DiscoveredDevicesSection(
+    devices: List<DiscoveredDevice>,
+    onRequestConnection: (String, String) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -184,13 +193,23 @@ private fun DiscoveredDevicesSection(devices: List<DiscoveredDevice>) {
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
+            
+            Text(
+                text = "※各デバイスの「接続」ボタンで手動接続できます",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
             Spacer(modifier = Modifier.height(8.dp))
             
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 items(devices) { device ->
-                    DeviceItem(device = device)
+                    DeviceItem(
+                        device = device,
+                        onRequestConnection = { onRequestConnection(device.endpointId, device.name) }
+                    )
                 }
             }
         }
@@ -198,24 +217,46 @@ private fun DiscoveredDevicesSection(devices: List<DiscoveredDevice>) {
 }
 
 @Composable
-private fun DeviceItem(device: DiscoveredDevice) {
+private fun DeviceItem(
+    device: DiscoveredDevice,
+    onRequestConnection: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
+        Row(
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = device.name,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = "ID: ${device.endpointId}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = device.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = "ID: ${device.endpointId}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            Button(
+                onClick = onRequestConnection,
+                modifier = Modifier.padding(start = 8.dp)
+            ) {
+                Icon(
+                    Icons.Default.Link,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("接続")
+            }
         }
     }
 }

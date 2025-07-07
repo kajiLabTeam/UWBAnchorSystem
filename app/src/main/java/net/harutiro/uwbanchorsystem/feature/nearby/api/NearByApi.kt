@@ -84,6 +84,18 @@ class NearByApi(
         Nearby.getConnectionsClient(activity).stopDiscovery()
     }
 
+    // 手動で特定のデバイスに接続リクエストを送信
+    fun requestConnection(endpointId: String, deviceName: String) {
+        Nearby.getConnectionsClient(activity)
+            .requestConnection(nickName, endpointId, connectionLifecycleCallback)
+            .addOnSuccessListener {
+                callback.onConnectionStateChanged("接続リクエスト送信: $deviceName")
+            }
+            .addOnFailureListener {
+                callback.onConnectionStateChanged("接続リクエスト失敗: $deviceName")
+            }
+    }
+
     fun acceptConnection(endpointId: String) {
         Nearby.getConnectionsClient(activity)
             .acceptConnection(endpointId, payloadCallback)
@@ -138,9 +150,7 @@ class NearByApi(
             )
             callback.onDeviceDiscovered(device)
             
-            // 自動的に接続リクエストを送信（発見側として）
-            Nearby.getConnectionsClient(activity)
-                .requestConnection(nickName, endpointId, connectionLifecycleCallback)
+            // 自動接続を削除 - 手動で接続できるようにする
         }
         
         override fun onEndpointLost(endpointId: String) {

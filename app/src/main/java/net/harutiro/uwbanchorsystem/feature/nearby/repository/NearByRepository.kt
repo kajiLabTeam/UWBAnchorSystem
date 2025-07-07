@@ -45,6 +45,9 @@ class NearByRepository private constructor(
     fun acceptConnection(endpointId: String) = nearByApi.acceptConnection(endpointId)
     fun rejectConnection(endpointId: String) = nearByApi.rejectConnection(endpointId)
     
+    // 手動で特定のデバイスに接続リクエストを送信
+    fun requestConnection(endpointId: String, deviceName: String) = nearByApi.requestConnection(endpointId, deviceName)
+    
     // 発見のみを停止（接続は維持）
     fun stopDiscoveryOnly() {
         nearByApi.stopDiscovery()
