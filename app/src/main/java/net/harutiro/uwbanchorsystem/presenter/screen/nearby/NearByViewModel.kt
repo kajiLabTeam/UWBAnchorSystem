@@ -59,6 +59,15 @@ class NearByViewModel : ViewModel() {
     }
     
     fun stopDiscovery() {
+        nearByRepository?.stopDiscoveryOnly()
+        _uiState.value = _uiState.value.copy(
+            isDiscovering = false,
+            discoveredDevices = emptyList(),
+            connectionRequests = emptyList()
+        )
+    }
+    
+    fun resetAll() {
         nearByRepository?.resetAll()
         _uiState.value = _uiState.value.copy(
             isDiscovering = false,

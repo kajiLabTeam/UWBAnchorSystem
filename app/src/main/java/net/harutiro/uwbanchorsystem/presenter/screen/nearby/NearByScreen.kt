@@ -114,6 +114,12 @@ private fun ControlButtonsSection(
                 fontWeight = FontWeight.Bold
             )
             
+            Text(
+                text = "※停止ボタンは発見機能のみを停止し、既存の接続は維持されます",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -133,12 +139,12 @@ private fun ControlButtonsSection(
                     enabled = isDiscovering,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
+                        containerColor = MaterialTheme.colorScheme.secondary
                     )
                 ) {
                     Icon(Icons.Default.Stop, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("停止")
+                    Text("発見停止")
                 }
             }
         }
@@ -240,11 +246,18 @@ private fun MessageSection(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "メッセージ",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Column {
+                    Text(
+                        text = "メッセージ",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "※全切断で既存の接続を終了できます",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 Button(
                     onClick = onDisconnectAll,
                     colors = ButtonDefaults.buttonColors(

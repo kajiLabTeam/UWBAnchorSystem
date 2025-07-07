@@ -31,6 +31,17 @@ class NearByRepository: NearbyRepositoryCallback {
     fun disconnectAll() = nearByApi.disconnectAll()
     fun acceptConnection(endpointId: String) = nearByApi.acceptConnection(endpointId)
     fun rejectConnection(endpointId: String) = nearByApi.rejectConnection(endpointId)
+    
+    // 発見のみを停止（接続は維持）
+    fun stopDiscoveryOnly() {
+        nearByApi.stopDiscovery()
+        // 発見されたデバイスリストと接続リクエストのみクリア
+        discoveredDevices = emptyList()
+        connectionRequests = emptyList()
+        connectState = "発見停止（接続は維持）"
+    }
+    
+    // 全てをリセット（接続も切断）
     fun resetAll() {
         nearByApi.resetAll()
         receivedDataList = emptyList()
