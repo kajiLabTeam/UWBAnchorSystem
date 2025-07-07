@@ -81,4 +81,7 @@ dependencies {
     // firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
+
+    // nearby
+    implementation(libs.play.services.nearby)
 }
