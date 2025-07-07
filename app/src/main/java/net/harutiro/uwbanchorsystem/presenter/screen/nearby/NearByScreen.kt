@@ -22,17 +22,12 @@ import net.harutiro.uwbanchorsystem.feature.nearby.api.DiscoveredDevice
 @Composable
 fun NearByScreen(
     modifier: Modifier = Modifier,
-    viewModel: NearByViewModel = viewModel()
+    viewModel: NearByViewModel = viewModel(factory = NearByViewModelFactory(LocalContext.current as android.app.Activity))
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showConnectionDialog by remember { mutableStateOf<ConnectionRequest?>(null) }
     var messageText by remember { mutableStateOf("") }
-
-    // ViewModelを初期化
-    LaunchedEffect(Unit) {
-        viewModel.initializeRepository(context as android.app.Activity)
-    }
 
     // 接続リクエストがある場合はダイアログを表示
     LaunchedEffect(uiState.connectionRequests) {

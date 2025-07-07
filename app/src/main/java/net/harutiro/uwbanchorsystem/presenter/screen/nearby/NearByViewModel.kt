@@ -1,9 +1,5 @@
 package net.harutiro.uwbanchorsystem.presenter.screen.nearby
 
-import android.app.Activity
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
@@ -24,42 +20,36 @@ data class NearByUiState(
     val receivedMessages: List<Pair<String, String>> = emptyList()
 )
 
-class NearByViewModel : ViewModel() {
-    private var nearByRepository: NearByRepository? = null
+class NearByViewModel(private val nearByRepository: NearByRepository) : ViewModel() {
     
     private val _uiState = MutableStateFlow(NearByUiState())
     val uiState: StateFlow<NearByUiState> = _uiState.asStateFlow()
     
-    fun initializeRepository(activity: Activity) {
-        if (nearByRepository == null) {
-            nearByRepository = NearByRepository(activity)
-            startStateObservation()
-        }
+    init {
+        startStateObservation()
     }
     
     private fun startStateObservation() {
         viewModelScope.launch {
             while (true) {
-                nearByRepository?.let { repository ->
-                    _uiState.value = _uiState.value.copy(
-                        connectionState = repository.connectState,
-                        discoveredDevices = repository.discoveredDevices,
-                        connectionRequests = repository.connectionRequests,
-                        receivedMessages = repository.receivedDataList
-                    )
-                }
+                _uiState.value = _uiState.value.copy(
+                    connectionState = nearByRepository.connectState,
+                    discoveredDevices = nearByRepository.discoveredDevices,
+                    connectionRequests = nearByRepository.connectionRequests,
+                    receivedMessages = nearByRepository.receivedDataList
+                )
                 delay(100) // 100msごとに状態を更新
             }
         }
     }
     
     fun startDiscovery() {
-        nearByRepository?.startDiscovery()
+        nearByRepository.startDiscovery()
         _uiState.value = _uiState.value.copy(isDiscovering = true)
     }
     
     fun stopDiscovery() {
-        nearByRepository?.stopDiscoveryOnly()
+        nearByRepository.stopDiscoveryOnly() // 接続を維持したまま発見のみ停止
         _uiState.value = _uiState.value.copy(
             isDiscovering = false,
             discoveredDevices = emptyList(),
@@ -68,7 +58,7 @@ class NearByViewModel : ViewModel() {
     }
     
     fun resetAll() {
-        nearByRepository?.resetAll()
+        nearByRepository.resetAll() // 全てをリセット（接続も切断）
         _uiState.value = _uiState.value.copy(
             isDiscovering = false,
             discoveredDevices = emptyList(),
@@ -77,23 +67,25 @@ class NearByViewModel : ViewModel() {
     }
     
     fun acceptConnection(endpointId: String) {
-        nearByRepository?.acceptConnection(endpointId)
+        nearByRepository.acceptConnection(endpointId)
     }
     
     fun rejectConnection(endpointId: String) {
-        nearByRepository?.rejectConnection(endpointId)
+        nearByRepository.rejectConnection(endpointId)
     }
     
     fun sendMessage(message: String) {
-        nearByRepository?.sendData(message)
+        nearByRepository.sendData(message)
     }
     
     fun disconnectAll() {
-        nearByRepository?.disconnectAll()
+        nearByRepository.disconnectAll()
     }
     
+    // 画面が破棄されても接続は維持（MainActivityで管理）
     override fun onCleared() {
         super.onCleared()
-        nearByRepository?.resetAll()
+        // 発見のみを停止し、接続は維持
+        nearByRepository.stopDiscoveryOnly()
     }
 } 

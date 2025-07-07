@@ -7,14 +7,27 @@ import net.harutiro.uwbanchorsystem.feature.nearby.api.DiscoveredDevice
 import net.harutiro.uwbanchorsystem.feature.nearby.api.NearByApi
 import net.harutiro.uwbanchorsystem.feature.nearby.api.NearbyRepositoryCallback
 
-class NearByRepository: NearbyRepositoryCallback {
-    private val nearByApi : NearByApi
-
-    constructor(
-        activity: Activity
-    ){
-        this.nearByApi = NearByApi(activity, this)
+class NearByRepository private constructor(
+    activity: Activity
+) : NearbyRepositoryCallback {
+    
+    companion object {
+        @Volatile
+        private var INSTANCE: NearByRepository? = null
+        
+        fun getInstance(activity: Activity): NearByRepository {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: NearByRepository(activity).also { INSTANCE = it }
+            }
+        }
+        
+        fun destroyInstance() {
+            INSTANCE?.nearByApi?.resetAll()
+            INSTANCE = null
+        }
     }
+    
+    private val nearByApi : NearByApi = NearByApi(activity, this)
 
     var connectState: String = ""
         private set
