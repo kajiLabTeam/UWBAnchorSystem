@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import net.harutiro.uwbanchorsystem.R
 import net.harutiro.uwbanchorsystem.presenter.screen.home.HomeScreen
+import net.harutiro.uwbanchorsystem.presenter.screen.nearby.NearByScreen
 
 @Composable
 fun Router(
@@ -26,12 +27,21 @@ fun Router(
         modifier = modifier.fillMaxSize(),
     ) {
         composable(BottomNavigationBarRoute.HOME.route) {
-            HomeScreen(modifier = Modifier)
+            HomeScreen(
+                modifier = Modifier,
+                navController = navController
+            )
             changeTopBarTitle(context.getString(BottomNavigationBarRoute.HOME.title))
+        }
+        
+        composable(BottomNavigationBarRoute.NEARBY.route) {
+            NearByScreen(modifier = Modifier)
+            changeTopBarTitle(context.getString(BottomNavigationBarRoute.NEARBY.title))
         }
     }
 }
 
 enum class BottomNavigationBarRoute(val route: String, val title: Int) {
     HOME("home", R.string.home),
+    NEARBY("nearby", R.string.nearby),
 }

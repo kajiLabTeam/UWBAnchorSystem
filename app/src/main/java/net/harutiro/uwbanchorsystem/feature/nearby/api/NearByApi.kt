@@ -15,10 +15,23 @@ import com.google.android.gms.nearby.connection.PayloadCallback
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate
 import com.google.android.gms.nearby.connection.Strategy
 
+data class DiscoveredDevice(
+    val endpointId: String,
+    val name: String,
+    val serviceId: String
+)
+
+data class ConnectionRequest(
+    val endpointId: String,
+    val connectionInfo: ConnectionInfo
+)
 
 interface NearbyRepositoryCallback {
     fun onConnectionStateChanged(state: String)
     fun onDataReceived(data: String, fromEndpointId: String)
+    fun onDeviceDiscovered(device: DiscoveredDevice)
+    fun onDeviceLost(endpointId: String)
+    fun onConnectionRequested(request: ConnectionRequest)
 }
 
 class NearByApi(
@@ -29,6 +42,7 @@ class NearByApi(
     private val strategy: Strategy = Strategy.P2P_STAR
 ) {
     private val remoteEndpointIds = mutableSetOf<String>()
+    private val pendingConnections = mutableMapOf<String, ConnectionInfo>()
     private val TAG = "NearbyRepository"
 
     fun startAdvertise() {
@@ -70,6 +84,20 @@ class NearByApi(
         Nearby.getConnectionsClient(activity).stopDiscovery()
     }
 
+    fun acceptConnection(endpointId: String) {
+        Nearby.getConnectionsClient(activity)
+            .acceptConnection(endpointId, payloadCallback)
+        pendingConnections.remove(endpointId)
+        callback.onConnectionStateChanged("接続を承認: $endpointId")
+    }
+
+    fun rejectConnection(endpointId: String) {
+        Nearby.getConnectionsClient(activity)
+            .rejectConnection(endpointId)
+        pendingConnections.remove(endpointId)
+        callback.onConnectionStateChanged("接続を拒否: $endpointId")
+    }
+
     fun disconnectAll() {
         val client = Nearby.getConnectionsClient(activity)
         remoteEndpointIds.forEach { endpointId ->
@@ -83,6 +111,7 @@ class NearByApi(
         stopAdvertising()
         stopDiscovery()
         disconnectAll()
+        pendingConnections.clear()
         callback.onConnectionStateChanged("全リセット")
     }
 
@@ -102,17 +131,31 @@ class NearByApi(
 
     private val endpointDiscoveryCallback = object : EndpointDiscoveryCallback() {
         override fun onEndpointFound(endpointId: String, discoveredEndpointInfo: DiscoveredEndpointInfo) {
+            val device = DiscoveredDevice(
+                endpointId = endpointId,
+                name = discoveredEndpointInfo.endpointName,
+                serviceId = discoveredEndpointInfo.serviceId
+            )
+            callback.onDeviceDiscovered(device)
+            
+            // 自動的に接続リクエストを送信（発見側として）
             Nearby.getConnectionsClient(activity)
                 .requestConnection(nickName, endpointId, connectionLifecycleCallback)
         }
-        override fun onEndpointLost(endpointId: String) {}
+        
+        override fun onEndpointLost(endpointId: String) {
+            callback.onDeviceLost(endpointId)
+        }
     }
 
     private val connectionLifecycleCallback = object : ConnectionLifecycleCallback() {
         override fun onConnectionInitiated(endpointId: String, connectionInfo: ConnectionInfo) {
-            Nearby.getConnectionsClient(activity)
-                .acceptConnection(endpointId, payloadCallback)
+            // 手動承認のために接続情報を保存
+            pendingConnections[endpointId] = connectionInfo
+            val request = ConnectionRequest(endpointId, connectionInfo)
+            callback.onConnectionRequested(request)
         }
+        
         override fun onConnectionResult(endpointId: String, result: ConnectionResolution) {
             when (result.status.statusCode) {
                 ConnectionsStatusCodes.STATUS_OK -> {
@@ -126,6 +169,7 @@ class NearByApi(
                 }
             }
         }
+        
         override fun onDisconnected(endpointId: String) {
             remoteEndpointIds.remove(endpointId)
             callback.onConnectionStateChanged("切断: $endpointId")

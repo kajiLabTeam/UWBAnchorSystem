@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">UWBAnchorSystem</string>
     <string name="home">ホーム</string>
+    <string name="nearby">NearBy接続</string>
     <string name="searching">ローディングしています</string>
     <string name="loading_content_description">ロードをしています、少々お待ちください</string>
 </resources>
