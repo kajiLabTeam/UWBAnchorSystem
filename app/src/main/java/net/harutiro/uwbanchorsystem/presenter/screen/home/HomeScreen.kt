@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Person
@@ -50,6 +52,7 @@ fun HomeScreen(
 ) {
     var fileName by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
         viewModel.connectDevice(context)
@@ -60,6 +63,7 @@ fun HomeScreen(
         modifier =
             modifier
                 .fillMaxWidth()
+                .verticalScroll(scrollState)
                 .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -270,8 +274,6 @@ fun HomeScreen(
                 }
             }
         }
-
-        Spacer(modifier = Modifier.weight(1f))
 
         // NearBy Connection画面への移動ボタン
         Button(
