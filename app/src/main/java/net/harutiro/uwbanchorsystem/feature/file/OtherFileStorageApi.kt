@@ -18,9 +18,9 @@ class OtherFileStorageApi(
     // true=追記, false=上書き
     val fileAppend: Boolean = true
 
-    // 全てのfileの前につける名前（自由）
-    val fileNameBace: String = DateUtils.getNowDate()
-    var fileName: String = fileNameBace.plus(name)
+    // Mac側から送られたファイル名をメインとして使用
+    // デバイス名を含めたい場合は、Mac側で指定してもらう
+    var fileName: String = if (name.isNotEmpty()) name else "uwb_data"
 
     // 拡張子
     val extension: String = ".csv"
