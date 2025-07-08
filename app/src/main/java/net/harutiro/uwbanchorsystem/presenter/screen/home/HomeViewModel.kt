@@ -9,18 +9,25 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import net.harutiro.uwbanchorsystem.feature.file.OtherFileStorageApi
 import net.harutiro.uwbanchorsystem.feature.http.MinioApiClient
+import net.harutiro.uwbanchorsystem.feature.nearby.repository.NearByRepository
+import net.harutiro.uwbanchorsystem.feature.nearby.repository.SensingControlCallback
 import net.harutiro.uwbanchorsystem.feature.serial.Entity.UWBResult
 import net.harutiro.uwbanchorsystem.feature.serial.repository.SerialRepository
 import net.harutiro.uwbanchorsystem.feature.utils.PreferencesManager
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel : ViewModel(), SensingControlCallback {
 
     val serialRepository = SerialRepository()
     var otherFileStorageApi: OtherFileStorageApi? = null
     val queue: ArrayDeque<String> = ArrayDeque(listOf())
+    private var nearByRepository: NearByRepository? = null
 
     var resultMessage by  mutableStateOf("")
     var deviceName by mutableStateOf("")
+        private set
+    var isSensing by mutableStateOf(false)
+        private set
+    var sensingStatus by mutableStateOf("")
         private set
 
     fun initializeDeviceName(context: Context) {
@@ -36,10 +43,38 @@ class HomeViewModel : ViewModel() {
 
     fun connectDevice(context: Context){
         serialRepository.connectDevice(context)
+        
+        // NearByRepositoryの初期化とコールバック設定
+        if (context is android.app.Activity) {
+            nearByRepository = NearByRepository.getInstance(context)
+            nearByRepository?.sensingControlCallback = this
+            sensingStatus = "リモート制御待機中"
+        }
+    }
+
+    // SensingControlCallbackの実装
+    override fun onStartSensingCommand(fileName: String) {
+        Log.d("HomeViewModel", "リモートセンシング開始: $fileName")
+        sensingStatus = "リモートセンシング開始: $fileName"
+        if (nearByRepository?.activity != null) {
+            startSensing(nearByRepository!!.activity, fileName)
+        }
+    }
+
+    override fun onStopSensingCommand() {
+        Log.d("HomeViewModel", "リモートセンシング終了")
+        sensingStatus = "リモートセンシング終了"
+        if (nearByRepository?.activity != null) {
+            stopSensing(nearByRepository!!.activity)
+        }
     }
 
     fun startSensing(context: Context, fileName: String){
         if(fileName.isEmpty() || !isValidFileName(fileName)) return
+        if(isSensing) return
+
+        isSensing = true
+        sensingStatus = if (sensingStatus.contains("リモート")) "リモートセンシング実行中: $fileName" else "ローカルセンシング実行中: $fileName"
 
         // 保存先を指定
         otherFileStorageApi = OtherFileStorageApi(
@@ -77,6 +112,11 @@ class HomeViewModel : ViewModel() {
     }
 
     fun stopSensing(context: Context) {
+        if(!isSensing) return
+        
+        isSensing = false
+        sensingStatus = if (sensingStatus.contains("リモート")) "リモートセンシング終了" else "ローカルセンシング終了"
+        
         val file = otherFileStorageApi?.stop()
         otherFileStorageApi = null
 

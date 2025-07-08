@@ -8,8 +8,14 @@ import net.harutiro.uwbanchorsystem.feature.nearby.api.NearByApi
 import net.harutiro.uwbanchorsystem.feature.nearby.api.NearbyRepositoryCallback
 import net.harutiro.uwbanchorsystem.feature.utils.PreferencesManager
 
+// センシング制御コマンドのコールバック
+interface SensingControlCallback {
+    fun onStartSensingCommand(fileName: String)
+    fun onStopSensingCommand()
+}
+
 class NearByRepository private constructor(
-    private val activity: Activity
+    val activity: Activity
 ) : NearbyRepositoryCallback {
     
     companion object {
@@ -39,6 +45,9 @@ class NearByRepository private constructor(
         private set
     var connectionRequests: List<ConnectionRequest> = emptyList()
         private set
+    
+    // センシング制御コールバック
+    var sensingControlCallback: SensingControlCallback? = null
 
     // 現在の端末名を取得
     private fun getCurrentDeviceName(): String {
@@ -88,6 +97,19 @@ class NearByRepository private constructor(
     override fun onDataReceived(data: String, fromEndpointId: String) {
         Log.d("NearByRepository", "onDataReceived: $data")
         receivedDataList = receivedDataList + (fromEndpointId to data)
+        
+        // センシング制御コマンドの処理
+        when {
+            data.startsWith("SENSING_START:") -> {
+                val fileName = data.removePrefix("SENSING_START:")
+                Log.d("NearByRepository", "センシング開始コマンド受信: fileName=$fileName")
+                sensingControlCallback?.onStartSensingCommand(fileName)
+            }
+            data == "SENSING_STOP" -> {
+                Log.d("NearByRepository", "センシング終了コマンド受信")
+                sensingControlCallback?.onStopSensingCommand()
+            }
+        }
     }
     
     override fun onDeviceDiscovered(device: DiscoveredDevice) {
