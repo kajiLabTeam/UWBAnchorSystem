@@ -64,7 +64,29 @@ class NearByRepository private constructor(
         nearByApi.startDiscovery(deviceName)
     }
 
-    fun sendData(text: String) = nearByApi.sendData(text)
+    fun sendData(text: String) {
+        Log.d("NearByRepository", "=== sendData開始 ===")
+        Log.d("NearByRepository", "データ種別: ${getDataType(text)}")
+        Log.d("NearByRepository", "データ長: ${text.length} bytes")
+        Log.d("NearByRepository", "データ内容（先頭100文字）: ${text.take(100)}")
+        
+        val result = nearByApi.sendData(text)
+        
+        Log.d("NearByRepository", "=== sendData終了 ===")
+        return result
+    }
+    
+    // データ種別を判定
+    private fun getDataType(text: String): String {
+        return when {
+            text.contains("\"type\":\"REALTIME_DATA\"") -> "リアルタイムデータ"
+            text.contains("\"type\":\"PING\"") -> "Ping"
+            text.contains("\"type\":\"FILE_TRANSFER_START\"") -> "ファイル転送開始"
+            text.startsWith("SENSING_START:") -> "センシング開始コマンド"
+            text == "SENSING_STOP" -> "センシング終了コマンド"
+            else -> "その他（${text.take(20)}...）"
+        }
+    }
 
     fun disconnectAll() = nearByApi.disconnectAll()
 
