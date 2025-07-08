@@ -104,6 +104,9 @@ class HomeViewModel : ViewModel(), SensingControlCallback {
                 Log.d("Main",line.toString())
 
                 addQueue(line.toString())
+                
+                // リアルタイムでMac側にelevation、azimuthデータを送信
+                sendRealtimeData(line)
             },
             onError = {
 
@@ -140,6 +143,29 @@ class HomeViewModel : ViewModel(), SensingControlCallback {
 
     fun addQueue(line: String){
         queue.add(line)
+    }
+
+    // リアルタイムデータ送信
+    private fun sendRealtimeData(uwbResult: UWBResult) {
+        nearByRepository?.let { repository ->
+            // elevation、azimuthを含むJSONデータを作成
+            val realtimeData = """
+                {
+                    "type": "REALTIME_DATA",
+                    "deviceName": "$deviceName",
+                    "timestamp": ${System.currentTimeMillis()},
+                    "elevation": ${uwbResult.elevation},
+                    "azimuth": ${uwbResult.azimuth},
+                    "distance": ${uwbResult.distance},
+                    "nlos": ${uwbResult.nLos},
+                    "rssi": ${uwbResult.rssi},
+                    "seqCount": ${uwbResult.seqCount}
+                }
+            """.trimIndent()
+            
+            repository.sendData(realtimeData)
+            Log.d("HomeViewModel", "リアルタイムデータ送信: elevation=${uwbResult.elevation}, azimuth=${uwbResult.azimuth}")
+        }
     }
 
     fun isValidFileName(fileName: String): Boolean {
