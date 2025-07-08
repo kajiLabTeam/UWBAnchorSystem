@@ -6,9 +6,10 @@ import net.harutiro.uwbanchorsystem.feature.nearby.api.ConnectionRequest
 import net.harutiro.uwbanchorsystem.feature.nearby.api.DiscoveredDevice
 import net.harutiro.uwbanchorsystem.feature.nearby.api.NearByApi
 import net.harutiro.uwbanchorsystem.feature.nearby.api.NearbyRepositoryCallback
+import net.harutiro.uwbanchorsystem.feature.utils.PreferencesManager
 
 class NearByRepository private constructor(
-    activity: Activity
+    private val activity: Activity
 ) : NearbyRepositoryCallback {
     
     companion object {
@@ -28,6 +29,7 @@ class NearByRepository private constructor(
     }
     
     private val nearByApi : NearByApi = NearByApi(activity, this)
+    private val preferencesManager = PreferencesManager.getInstance(activity)
 
     var connectState: String = ""
         private set
@@ -38,8 +40,21 @@ class NearByRepository private constructor(
     var connectionRequests: List<ConnectionRequest> = emptyList()
         private set
 
-    fun startAdvertise() = nearByApi.startAdvertise()
-    fun startDiscovery() = nearByApi.startDiscovery()
+    // 現在の端末名を取得
+    private fun getCurrentDeviceName(): String {
+        return preferencesManager.deviceName.ifEmpty { "未設定の端末" }
+    }
+
+    fun startAdvertise() {
+        val deviceName = getCurrentDeviceName()
+        nearByApi.startAdvertise(deviceName)
+    }
+    
+    fun startDiscovery() {
+        val deviceName = getCurrentDeviceName()
+        nearByApi.startDiscovery(deviceName)
+    }
+    
     fun sendData(text: String) = nearByApi.sendData(text)
     fun disconnectAll() = nearByApi.disconnectAll()
     fun acceptConnection(endpointId: String) = nearByApi.acceptConnection(endpointId)

@@ -37,31 +37,39 @@ interface NearbyRepositoryCallback {
 class NearByApi(
     private val activity: Activity,
     private val callback: NearbyRepositoryCallback,
-    private val nickName: String = "harutiro",
     private val serviceId: String = "net.harutiro.UWBSystem",
     private val strategy: Strategy = Strategy.P2P_STAR
 ) {
     private val remoteEndpointIds = mutableSetOf<String>()
     private val pendingConnections = mutableMapOf<String, ConnectionInfo>()
     private val TAG = "NearbyRepository"
+    
+    // 動的に変更可能なnickname
+    private var currentNickname: String = "default"
 
-    fun startAdvertise() {
+    fun updateNickname(nickname: String) {
+        currentNickname = nickname.ifEmpty { "未設定" }
+    }
+
+    fun startAdvertise(nickname: String) {
+        updateNickname(nickname)
         Nearby.getConnectionsClient(activity)
             .startAdvertising(
-                nickName,
+                currentNickname,
                 serviceId,
                 connectionLifecycleCallback,
                 AdvertisingOptions.Builder().setStrategy(strategy).build()
             )
             .addOnSuccessListener {
-                callback.onConnectionStateChanged("広告開始")
+                callback.onConnectionStateChanged("広告開始 (端末名: $currentNickname)")
             }
             .addOnFailureListener {
                 callback.onConnectionStateChanged("広告失敗")
             }
     }
 
-    fun startDiscovery() {
+    fun startDiscovery(nickname: String) {
+        updateNickname(nickname)
         Nearby.getConnectionsClient(activity)
             .startDiscovery(
                 serviceId,
@@ -69,7 +77,7 @@ class NearByApi(
                 DiscoveryOptions.Builder().setStrategy(strategy).build()
             )
             .addOnSuccessListener {
-                callback.onConnectionStateChanged("発見開始")
+                callback.onConnectionStateChanged("発見開始 (端末名: $currentNickname)")
             }
             .addOnFailureListener {
                 callback.onConnectionStateChanged("発見失敗")
@@ -87,9 +95,9 @@ class NearByApi(
     // 手動で特定のデバイスに接続リクエストを送信
     fun requestConnection(endpointId: String, deviceName: String) {
         Nearby.getConnectionsClient(activity)
-            .requestConnection(nickName, endpointId, connectionLifecycleCallback)
+            .requestConnection(currentNickname, endpointId, connectionLifecycleCallback)
             .addOnSuccessListener {
-                callback.onConnectionStateChanged("接続リクエスト送信: $deviceName")
+                callback.onConnectionStateChanged("接続リクエスト送信: $deviceName (自分: $currentNickname)")
             }
             .addOnFailureListener {
                 callback.onConnectionStateChanged("接続リクエスト失敗: $deviceName")
