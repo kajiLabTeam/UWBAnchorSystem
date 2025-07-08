@@ -74,9 +74,9 @@ dependencies {
     testImplementation(kotlin("test"))
 
     // http
-    implementation (libs.retrofit)
-    implementation (libs.logging.interceptor)
-    implementation (libs.converter.gson)
+    implementation(libs.retrofit)
+    implementation(libs.logging.interceptor)
+    implementation(libs.converter.gson)
 
     // firebase
     implementation(platform(libs.firebase.bom))

@@ -29,11 +29,11 @@ fun Router(
         composable(BottomNavigationBarRoute.HOME.route) {
             HomeScreen(
                 modifier = Modifier,
-                navController = navController
+                navController = navController,
             )
             changeTopBarTitle(context.getString(BottomNavigationBarRoute.HOME.title))
         }
-        
+
         composable(BottomNavigationBarRoute.NEARBY.route) {
             NearByScreen(modifier = Modifier)
             changeTopBarTitle(context.getString(BottomNavigationBarRoute.NEARBY.title))

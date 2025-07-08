@@ -23,7 +23,7 @@ import net.harutiro.uwbanchorsystem.feature.nearby.api.DiscoveredDevice
 @Composable
 fun NearByScreen(
     modifier: Modifier = Modifier,
-    viewModel: NearByViewModel = viewModel(factory = NearByViewModelFactory(LocalContext.current as android.app.Activity))
+    viewModel: NearByViewModel = viewModel(factory = NearByViewModelFactory(LocalContext.current as android.app.Activity)),
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -38,16 +38,17 @@ fun NearByScreen(
     }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // 制御ボタンエリア
         ControlButtonsSection(
             isDiscovering = uiState.isDiscovering,
             onStartDiscovery = { viewModel.startDiscovery() },
-            onStopDiscovery = { viewModel.stopDiscovery() }
+            onStopDiscovery = { viewModel.stopDiscovery() },
         )
 
         // 状態表示
@@ -59,7 +60,7 @@ fun NearByScreen(
                 devices = uiState.discoveredDevices,
                 onRequestConnection = { endpointId, deviceName ->
                     viewModel.requestConnection(endpointId, deviceName)
-                }
+                },
             )
         }
 
@@ -68,12 +69,12 @@ fun NearByScreen(
             MessageSection(
                 messageText = messageText,
                 onMessageTextChange = { messageText = it },
-                onSendMessage = { 
+                onSendMessage = {
                     viewModel.sendMessage(messageText)
                     messageText = ""
                 },
                 receivedMessages = uiState.receivedMessages,
-                onDisconnectAll = { viewModel.disconnectAll() }
+                onDisconnectAll = { viewModel.disconnectAll() },
             )
         }
     }
@@ -82,15 +83,15 @@ fun NearByScreen(
     showConnectionDialog?.let { request ->
         ConnectionApprovalDialog(
             request = request,
-            onAccept = { 
+            onAccept = {
                 viewModel.acceptConnection(request.endpointId)
                 showConnectionDialog = null
             },
-            onReject = { 
+            onReject = {
                 viewModel.rejectConnection(request.endpointId)
                 showConnectionDialog = null
             },
-            onDismiss = { showConnectionDialog = null }
+            onDismiss = { showConnectionDialog = null },
         )
     }
 }
@@ -99,49 +100,50 @@ fun NearByScreen(
 private fun ControlButtonsSection(
     isDiscovering: Boolean,
     onStartDiscovery: () -> Unit,
-    onStopDiscovery: () -> Unit
+    onStopDiscovery: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
                 text = "NearBy Connection 制御",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
-            
+
             Text(
                 text = "※停止ボタンは発見機能のみを停止し、既存の接続は維持されます",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Button(
                     onClick = onStartDiscovery,
                     enabled = !isDiscovering,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Icon(Icons.Default.Search, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("発見開始")
                 }
-                
+
                 Button(
                     onClick = onStopDiscovery,
                     enabled = isDiscovering,
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    )
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                        ),
                 ) {
                     Icon(Icons.Default.Stop, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -156,21 +158,21 @@ private fun ControlButtonsSection(
 private fun StatusCard(connectionState: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 Icons.Default.Wifi,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "状態: $connectionState",
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
     }
@@ -179,36 +181,36 @@ private fun StatusCard(connectionState: String) {
 @Composable
 private fun DiscoveredDevicesSection(
     devices: List<DiscoveredDevice>,
-    onRequestConnection: (String, String) -> Unit
+    onRequestConnection: (String, String) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         ) {
             Text(
                 text = "発見されたデバイス (${devices.size}台)",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
-            
+
             Text(
                 text = "※各デバイスの「接続」ボタンで手動接続できます",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 items(devices) { device ->
                     DeviceItem(
                         device = device,
-                        onRequestConnection = { onRequestConnection(device.endpointId, device.name) }
+                        onRequestConnection = { onRequestConnection(device.endpointId, device.name) },
                     )
                 }
             }
@@ -219,40 +221,40 @@ private fun DiscoveredDevicesSection(
 @Composable
 private fun DeviceItem(
     device: DiscoveredDevice,
-    onRequestConnection: () -> Unit
+    onRequestConnection: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 Text(
                     text = device.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
                 )
                 Text(
                     text = "ID: ${device.endpointId}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            
+
             Button(
                 onClick = onRequestConnection,
-                modifier = Modifier.padding(start = 8.dp)
+                modifier = Modifier.padding(start = 8.dp),
             ) {
                 Icon(
                     Icons.Default.Link,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text("接続")
@@ -267,86 +269,87 @@ private fun MessageSection(
     onMessageTextChange: (String) -> Unit,
     onSendMessage: () -> Unit,
     receivedMessages: List<Pair<String, String>>,
-    onDisconnectAll: () -> Unit
+    onDisconnectAll: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
                     Text(
                         text = "メッセージ",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                     Text(
                         text = "※全切断で既存の接続を終了できます",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 Button(
                     onClick = onDisconnectAll,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                        ),
                 ) {
                     Text("全切断")
                 }
             }
-            
+
             // メッセージ送信
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 OutlinedTextField(
                     value = messageText,
                     onValueChange = onMessageTextChange,
                     label = { Text("メッセージを入力") },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 Button(onClick = onSendMessage) {
                     Text("送信")
                 }
             }
-            
+
             // 受信メッセージ
             if (receivedMessages.isNotEmpty()) {
                 Text(
                     text = "受信メッセージ:",
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
                 )
                 LazyColumn(
                     modifier = Modifier.heightIn(max = 200.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     items(receivedMessages) { (endpointId, message) ->
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                         ) {
                             Column(
-                                modifier = Modifier.padding(8.dp)
+                                modifier = Modifier.padding(8.dp),
                             ) {
                                 Text(
                                     text = "From: $endpointId",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                                 Text(
                                     text = message,
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyMedium,
                                 )
                             }
                         }
@@ -362,7 +365,7 @@ private fun ConnectionApprovalDialog(
     request: ConnectionRequest,
     onAccept: () -> Unit,
     onReject: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -373,7 +376,7 @@ private fun ConnectionApprovalDialog(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "端末名: ${request.connectionInfo.endpointName}",
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
                 Text("認証トークン: ${request.connectionInfo.authenticationDigits}")
                 Spacer(modifier = Modifier.height(8.dp))
@@ -389,6 +392,6 @@ private fun ConnectionApprovalDialog(
             OutlinedButton(onClick = onReject) {
                 Text("拒否")
             }
-        }
+        },
     )
 } 

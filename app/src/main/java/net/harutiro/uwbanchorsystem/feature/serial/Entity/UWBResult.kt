@@ -11,10 +11,10 @@ data class UWBResult(
     val elevationFom: Int = 0,
     val rssi: Double = 0.0,
     val pDoA1: Double = 0.0,
-    val pDoA2: Double = 0.0
-){
+    val pDoA2: Double = 0.0,
+) {
 
-    companion object{
+    companion object {
         fun header(): String {
             return "time,seqCount,nLos,distance,azimuth,azimuthFom,elevation,elevationFom,rssi,pDoA1,pDoA2"
         }

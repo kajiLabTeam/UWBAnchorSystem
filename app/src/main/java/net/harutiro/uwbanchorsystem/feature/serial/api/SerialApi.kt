@@ -8,7 +8,6 @@ import com.hoho.android.usbserial.driver.UsbSerialProber
 import com.hoho.android.usbserial.util.SerialInputOutputManager
 
 class SerialApi {
-
     companion object {
         private const val TAG = "SerialApi"
     }
@@ -25,9 +24,8 @@ class SerialApi {
      */
     fun connectDevice(
         baudRate: Int = 3_000_000,
-        context: Context
+        context: Context,
     ): Result<Unit> {
-
         usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
 
         val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager)
@@ -36,8 +34,9 @@ class SerialApi {
         }
 
         val driver = availableDrivers.first()
-        val connection = usbManager?.openDevice(driver.device)
-            ?: return Result.failure(Exception("USB接続に失敗しました"))
+        val connection =
+            usbManager?.openDevice(driver.device)
+                ?: return Result.failure(Exception("USB接続に失敗しました"))
 
         return try {
             port = driver.ports.first()
@@ -58,32 +57,36 @@ class SerialApi {
      */
     fun startListening(
         onLineRead: (String) -> Unit,
-        onError: ((Throwable) -> Unit)? = null
+        onError: ((Throwable) -> Unit)? = null,
     ) {
         val buffer = StringBuilder()
 
-        usbIoManager = SerialInputOutputManager(port, object : SerialInputOutputManager.Listener {
-            override fun onRunError(e: Exception) {
-                Log.e(TAG, "SerialIOManagerエラー: ${e.message}")
-                onError?.invoke(e)
-            }
+        usbIoManager =
+            SerialInputOutputManager(
+                port,
+                object : SerialInputOutputManager.Listener {
+                    override fun onRunError(e: Exception) {
+                        Log.e(TAG, "SerialIOManagerエラー: ${e.message}")
+                        onError?.invoke(e)
+                    }
 
-            override fun onNewData(data: ByteArray) {
-                val receivedText = String(data)
-                buffer.append(receivedText)
+                    override fun onNewData(data: ByteArray) {
+                        val receivedText = String(data)
+                        buffer.append(receivedText)
 
-                var newlineIndex = buffer.indexOf("\n")
-                while (newlineIndex != -1) {
-                    val line = buffer.substring(0, newlineIndex).trimEnd('\r')
-                    Log.d(TAG, "受信: $line")
-                    onLineRead(line)
-                    buffer.delete(0, newlineIndex + 1)
-                    newlineIndex = buffer.indexOf("\n")
-                }
+                        var newlineIndex = buffer.indexOf("\n")
+                        while (newlineIndex != -1) {
+                            val line = buffer.substring(0, newlineIndex).trimEnd('\r')
+                            Log.d(TAG, "受信: $line")
+                            onLineRead(line)
+                            buffer.delete(0, newlineIndex + 1)
+                            newlineIndex = buffer.indexOf("\n")
+                        }
+                    }
+                },
+            ).apply {
+                start()
             }
-        }).apply {
-            start()
-        }
     }
 
     /**

@@ -13,6 +13,6 @@ interface MinioApiService {
     fun uploadFile(
         @Part bucket: MultipartBody.Part,
         @Part path: MultipartBody.Part,
-        @Part file: MultipartBody.Part
+        @Part file: MultipartBody.Part,
     ): Call<ResponseBody>
 } 

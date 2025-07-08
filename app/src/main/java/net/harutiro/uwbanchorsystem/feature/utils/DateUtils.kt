@@ -4,10 +4,9 @@ import android.icu.text.SimpleDateFormat
 import java.util.*
 
 class DateUtils {
-
-    companion object{
+    companion object {
         fun getNowDate(): String {
-            val df = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss",Locale.JAPAN)
+            val df = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.JAPAN)
             val date = Date(System.currentTimeMillis())
             return df.format(date)
         }
@@ -19,7 +18,7 @@ class DateUtils {
             return date.time
         }
 
-        fun getTimeStamp():Long {
+        fun getTimeStamp(): Long {
             return System.currentTimeMillis()
         }
     }

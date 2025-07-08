@@ -6,9 +6,8 @@ import androidx.lifecycle.ViewModelProvider
 import net.harutiro.uwbanchorsystem.feature.nearby.repository.NearByRepository
 
 class NearByViewModelFactory(
-    private val activity: Activity
+    private val activity: Activity,
 ) : ViewModelProvider.Factory {
-    
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(NearByViewModel::class.java)) {

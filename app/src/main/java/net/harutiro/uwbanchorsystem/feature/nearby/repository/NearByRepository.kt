@@ -11,30 +11,30 @@ import net.harutiro.uwbanchorsystem.feature.utils.PreferencesManager
 // センシング制御コマンドのコールバック
 interface SensingControlCallback {
     fun onStartSensingCommand(fileName: String)
+
     fun onStopSensingCommand()
 }
 
 class NearByRepository private constructor(
-    val activity: Activity
+    val activity: Activity,
 ) : NearbyRepositoryCallback {
-    
     companion object {
         @Volatile
         private var INSTANCE: NearByRepository? = null
-        
+
         fun getInstance(activity: Activity): NearByRepository {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: NearByRepository(activity).also { INSTANCE = it }
             }
         }
-        
+
         fun destroyInstance() {
             INSTANCE?.nearByApi?.resetAll()
             INSTANCE = null
         }
     }
-    
-    private val nearByApi : NearByApi = NearByApi(activity, this)
+
+    private val nearByApi: NearByApi = NearByApi(activity, this)
     private val preferencesManager = PreferencesManager.getInstance(activity)
 
     var connectState: String = ""
@@ -45,7 +45,7 @@ class NearByRepository private constructor(
         private set
     var connectionRequests: List<ConnectionRequest> = emptyList()
         private set
-    
+
     // センシング制御コールバック
     var sensingControlCallback: SensingControlCallback? = null
 
@@ -58,20 +58,35 @@ class NearByRepository private constructor(
         val deviceName = getCurrentDeviceName()
         nearByApi.startAdvertise(deviceName)
     }
-    
+
     fun startDiscovery() {
         val deviceName = getCurrentDeviceName()
         nearByApi.startDiscovery(deviceName)
     }
-    
+
     fun sendData(text: String) = nearByApi.sendData(text)
+
     fun disconnectAll() = nearByApi.disconnectAll()
+
     fun acceptConnection(endpointId: String) = nearByApi.acceptConnection(endpointId)
+
     fun rejectConnection(endpointId: String) = nearByApi.rejectConnection(endpointId)
-    
+
+    // ファイル送信機能を追加
+    fun sendFile(
+        file: java.io.File,
+        onProgress: (Int) -> Unit,
+        onComplete: (Boolean, String) -> Unit,
+    ) {
+        nearByApi.sendFile(file, onProgress, onComplete)
+    }
+
     // 手動で特定のデバイスに接続リクエストを送信
-    fun requestConnection(endpointId: String, deviceName: String) = nearByApi.requestConnection(endpointId, deviceName)
-    
+    fun requestConnection(
+        endpointId: String,
+        deviceName: String,
+    ) = nearByApi.requestConnection(endpointId, deviceName)
+
     // 発見のみを停止（接続は維持）
     fun stopDiscoveryOnly() {
         nearByApi.stopDiscovery()
@@ -80,7 +95,7 @@ class NearByRepository private constructor(
         connectionRequests = emptyList()
         connectState = "発見停止（接続は維持）"
     }
-    
+
     // 全てをリセット（接続も切断）
     fun resetAll() {
         nearByApi.resetAll()
@@ -93,11 +108,14 @@ class NearByRepository private constructor(
         Log.d("NearByRepository", state)
         connectState = state
     }
-    
-    override fun onDataReceived(data: String, fromEndpointId: String) {
+
+    override fun onDataReceived(
+        data: String,
+        fromEndpointId: String,
+    ) {
         Log.d("NearByRepository", "onDataReceived: $data")
         receivedDataList = receivedDataList + (fromEndpointId to data)
-        
+
         // センシング制御コマンドの処理
         when {
             data.startsWith("SENSING_START:") -> {
@@ -111,19 +129,36 @@ class NearByRepository private constructor(
             }
         }
     }
-    
+
     override fun onDeviceDiscovered(device: DiscoveredDevice) {
         Log.d("NearByRepository", "onDeviceDiscovered: ${device.name}")
         discoveredDevices = discoveredDevices.filter { it.endpointId != device.endpointId } + device
     }
-    
+
     override fun onDeviceLost(endpointId: String) {
         Log.d("NearByRepository", "onDeviceLost: $endpointId")
         discoveredDevices = discoveredDevices.filter { it.endpointId != endpointId }
     }
-    
+
     override fun onConnectionRequested(request: ConnectionRequest) {
         Log.d("NearByRepository", "onConnectionRequested: ${request.connectionInfo.endpointName}")
         connectionRequests = connectionRequests.filter { it.endpointId != request.endpointId } + request
+    }
+
+    // 接続状態をチェック
+    fun hasActiveConnections(): Boolean {
+        return nearByApi.hasActiveConnections()
+    }
+
+    fun getConnectedEndpointsCount(): Int {
+        return nearByApi.getConnectedEndpointsCount()
+    }
+
+    fun getDetailedConnectionStatus(): String {
+        return nearByApi.getDetailedConnectionStatus()
+    }
+
+    fun sendPing() {
+        nearByApi.sendPing()
     }
 }

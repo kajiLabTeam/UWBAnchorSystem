@@ -8,17 +8,16 @@ import net.harutiro.uwbanchorsystem.presenter.MainScreen
 import net.harutiro.uwbanchorsystem.presenter.theme.UWBAnchorSystemTheme
 
 class MainActivity : ComponentActivity() {
-    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         setContent {
             UWBAnchorSystemTheme {
                 MainScreen()
             }
         }
     }
-    
+
     override fun onDestroy() {
         super.onDestroy()
         // アプリ終了時にシングルトンインスタンスを破棄
