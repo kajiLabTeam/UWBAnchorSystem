@@ -1,7 +1,9 @@
 package net.harutiro.uwbanchorsystem.presenter.screen.simple
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -41,13 +43,18 @@ fun SimpleUWBScreen(
         }
     }
 
-    Box(
+    Column(
         modifier =
             modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
-        contentAlignment = Alignment.Center,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        // 上部の余白を追加（小さい画面では自動的に削減される）
+        Spacer(modifier = Modifier.weight(1f, fill = false))
+        
         Card(
             modifier =
                 Modifier
@@ -160,6 +167,9 @@ fun SimpleUWBScreen(
                 }
             }
         }
+        
+        // 下部の余白を追加（小さい画面では自動的に削減される）
+        Spacer(modifier = Modifier.weight(1f, fill = false))
     }
 
     // 接続承認ダイアログ
