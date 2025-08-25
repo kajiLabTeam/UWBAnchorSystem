@@ -16,4 +16,4 @@ class NearByViewModelFactory(
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
-} 
+}

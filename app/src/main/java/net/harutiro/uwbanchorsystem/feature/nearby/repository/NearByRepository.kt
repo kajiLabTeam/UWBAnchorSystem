@@ -8,6 +8,17 @@ import net.harutiro.uwbanchorsystem.feature.nearby.api.NearByApi
 import net.harutiro.uwbanchorsystem.feature.nearby.api.NearbyRepositoryCallback
 import net.harutiro.uwbanchorsystem.feature.utils.PreferencesManager
 
+// 簡易版用のデータクラス
+data class ConnectedDevice(
+    val endpointId: String,
+    val deviceName: String,
+)
+
+data class Message(
+    val content: String,
+    val fromEndpointId: String,
+)
+
 // センシング制御コマンドのコールバック
 interface SensingControlCallback {
     fun onStartSensingCommand(fileName: String)
@@ -49,6 +60,13 @@ class NearByRepository private constructor(
     // センシング制御コールバック
     var sensingControlCallback: SensingControlCallback? = null
 
+    // 各種コールバック
+    private var onConnectionStateChangedListener: ((String) -> Unit)? = null
+    private var onConnectionRequestReceivedListener: ((ConnectionRequest) -> Unit)? = null
+    private var onDeviceConnectedListener: ((ConnectedDevice) -> Unit)? = null
+    private var onDeviceDisconnectedListener: ((String) -> Unit)? = null
+    private var onMessageReceivedListener: ((Message) -> Unit)? = null
+
     // 現在の端末名を取得
     private fun getCurrentDeviceName(): String {
         return preferencesManager.deviceName.ifEmpty { "未設定の端末" }
@@ -69,13 +87,13 @@ class NearByRepository private constructor(
         Log.d("NearByRepository", "データ種別: ${getDataType(text)}")
         Log.d("NearByRepository", "データ長: ${text.length} bytes")
         Log.d("NearByRepository", "データ内容（先頭100文字）: ${text.take(100)}")
-        
+
         val result = nearByApi.sendData(text)
-        
+
         Log.d("NearByRepository", "=== sendData終了 ===")
         return result
     }
-    
+
     // データ種別を判定
     private fun getDataType(text: String): String {
         return when {
@@ -126,32 +144,6 @@ class NearByRepository private constructor(
         connectionRequests = emptyList()
     }
 
-    override fun onConnectionStateChanged(state: String) {
-        Log.d("NearByRepository", state)
-        connectState = state
-    }
-
-    override fun onDataReceived(
-        data: String,
-        fromEndpointId: String,
-    ) {
-        Log.d("NearByRepository", "onDataReceived: $data")
-        receivedDataList = receivedDataList + (fromEndpointId to data)
-
-        // センシング制御コマンドの処理
-        when {
-            data.startsWith("SENSING_START:") -> {
-                val fileName = data.removePrefix("SENSING_START:")
-                Log.d("NearByRepository", "センシング開始コマンド受信: fileName=$fileName")
-                sensingControlCallback?.onStartSensingCommand(fileName)
-            }
-            data == "SENSING_STOP" -> {
-                Log.d("NearByRepository", "センシング終了コマンド受信")
-                sensingControlCallback?.onStopSensingCommand()
-            }
-        }
-    }
-
     override fun onDeviceDiscovered(device: DiscoveredDevice) {
         Log.d("NearByRepository", "onDeviceDiscovered: ${device.name}")
         discoveredDevices = discoveredDevices.filter { it.endpointId != device.endpointId } + device
@@ -160,11 +152,6 @@ class NearByRepository private constructor(
     override fun onDeviceLost(endpointId: String) {
         Log.d("NearByRepository", "onDeviceLost: $endpointId")
         discoveredDevices = discoveredDevices.filter { it.endpointId != endpointId }
-    }
-
-    override fun onConnectionRequested(request: ConnectionRequest) {
-        Log.d("NearByRepository", "onConnectionRequested: ${request.connectionInfo.endpointName}")
-        connectionRequests = connectionRequests.filter { it.endpointId != request.endpointId } + request
     }
 
     // 接続状態をチェック
@@ -182,5 +169,76 @@ class NearByRepository private constructor(
 
     fun sendPing() {
         nearByApi.sendPing()
+    }
+
+    // SimpleUWBViewModel用のコールバック設定メソッド
+    fun setOnConnectionStateChangedListener(listener: (String) -> Unit) {
+        onConnectionStateChangedListener = listener
+    }
+
+    fun setOnConnectionRequestReceivedListener(listener: (ConnectionRequest) -> Unit) {
+        onConnectionRequestReceivedListener = listener
+    }
+
+    fun setOnDeviceConnectedListener(listener: (ConnectedDevice) -> Unit) {
+        onDeviceConnectedListener = listener
+    }
+
+    fun setOnDeviceDisconnectedListener(listener: (String) -> Unit) {
+        onDeviceDisconnectedListener = listener
+    }
+
+    fun setOnMessageReceivedListener(listener: (Message) -> Unit) {
+        onMessageReceivedListener = listener
+    }
+
+    // Advertising開始（端末名指定版）
+    fun startAdvertising(deviceName: String) {
+        // 端末名を設定
+        preferencesManager.deviceName = deviceName
+        // Advertising開始
+        nearByApi.startAdvertise(deviceName)
+    }
+
+    // Advertising停止
+    fun stopAdvertising() {
+        nearByApi.stopAdvertising()
+    }
+
+    // コールバック呼び出しの更新
+    override fun onConnectionStateChanged(state: String) {
+        Log.d("NearByRepository", state)
+        connectState = state
+        onConnectionStateChangedListener?.invoke(state)
+    }
+
+    override fun onConnectionRequested(request: ConnectionRequest) {
+        Log.d("NearByRepository", "onConnectionRequested: ${request.connectionInfo.endpointName}")
+        connectionRequests = connectionRequests.filter { it.endpointId != request.endpointId } + request
+        onConnectionRequestReceivedListener?.invoke(request)
+    }
+
+    override fun onDataReceived(
+        data: String,
+        fromEndpointId: String,
+    ) {
+        Log.d("NearByRepository", "onDataReceived: $data")
+        receivedDataList = receivedDataList + (fromEndpointId to data)
+
+        // MessageReceivedListenerに通知
+        onMessageReceivedListener?.invoke(Message(data, fromEndpointId))
+
+        // センシング制御コマンドの処理
+        when {
+            data.startsWith("SENSING_START:") -> {
+                val fileName = data.removePrefix("SENSING_START:")
+                Log.d("NearByRepository", "センシング開始コマンド受信: fileName=$fileName")
+                sensingControlCallback?.onStartSensingCommand(fileName)
+            }
+            data == "SENSING_STOP" -> {
+                Log.d("NearByRepository", "センシング終了コマンド受信")
+                sensingControlCallback?.onStopSensingCommand()
+            }
+        }
     }
 }

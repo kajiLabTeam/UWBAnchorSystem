@@ -9,7 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import net.harutiro.uwbanchorsystem.R
 import net.harutiro.uwbanchorsystem.presenter.screen.home.HomeScreen
-import net.harutiro.uwbanchorsystem.presenter.screen.nearby.NearByScreen
+import net.harutiro.uwbanchorsystem.presenter.screen.simple.SimpleUWBScreen
 
 @Composable
 fun Router(
@@ -23,7 +23,7 @@ fun Router(
 
     NavHost(
         navController = navController,
-        startDestination = BottomNavigationBarRoute.HOME.route,
+        startDestination = BottomNavigationBarRoute.NEARBY.route,
         modifier = modifier.fillMaxSize(),
     ) {
         composable(BottomNavigationBarRoute.HOME.route) {
@@ -35,7 +35,7 @@ fun Router(
         }
 
         composable(BottomNavigationBarRoute.NEARBY.route) {
-            NearByScreen(modifier = Modifier)
+            SimpleUWBScreen(modifier = Modifier)
             changeTopBarTitle(context.getString(BottomNavigationBarRoute.NEARBY.title))
         }
     }

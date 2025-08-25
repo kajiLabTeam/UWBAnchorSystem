@@ -48,7 +48,7 @@ class HomeViewModel : ViewModel(), SensingControlCallback {
         preferencesManager.deviceName = newDeviceName
     }
 
-    fun connectDevice(context: Context)  {
+    fun connectDevice(context: Context) {
         serialRepository.connectDevice(context)
 
         // NearByRepositoryの初期化とコールバック設定
@@ -84,7 +84,7 @@ class HomeViewModel : ViewModel(), SensingControlCallback {
     fun startSensing(
         context: Context,
         fileName: String,
-    )  {
+    ) {
         if (fileName.isEmpty() || !isValidFileName(fileName)) return
         if (isSensing) return
 
@@ -156,7 +156,10 @@ class HomeViewModel : ViewModel(), SensingControlCallback {
     }
 
     // Macへの直接送信（内部メソッド）
-    private fun sendFileToMac(context: Context, file: java.io.File?) {
+    private fun sendFileToMac(
+        context: Context,
+        file: java.io.File?,
+    ) {
         file?.let { notNullFile ->
             isFileSending = true
             resultMessage = "Macに自動送信中..."
@@ -181,7 +184,7 @@ class HomeViewModel : ViewModel(), SensingControlCallback {
                         // Mac送信失敗時はMinioにバックアップ
                         uploadToMinio(context, notNullFile)
                     }
-                }
+                },
             )
         } ?: run {
             isFileSending = false
@@ -211,14 +214,17 @@ class HomeViewModel : ViewModel(), SensingControlCallback {
         }
     }
 
-    fun addQueue(line: String)  {
+    fun addQueue(line: String) {
         queue.add(line)
     }
 
     // リアルタイムデータ送信
     private fun sendRealtimeData(uwbResult: UWBResult) {
         Log.d("HomeViewModel", "=== sendRealtimeData開始 ===")
-        Log.d("HomeViewModel", "UWBResult: elevation=${uwbResult.elevation}, azimuth=${uwbResult.azimuth}, distance=${uwbResult.distance}, seqCount=${uwbResult.seqCount}")
+        Log.d(
+            "HomeViewModel",
+            "UWBResult: elevation=${uwbResult.elevation}, azimuth=${uwbResult.azimuth}, distance=${uwbResult.distance}, seqCount=${uwbResult.seqCount}",
+        )
 
         // ファイル送信中はリアルタイムデータ送信をスキップ
         if (isFileSending) {
@@ -240,20 +246,21 @@ class HomeViewModel : ViewModel(), SensingControlCallback {
 
             // elevation、azimuthを含むJSONデータを作成（フォーマット改善）
             val realtimeData = """{"type":"REALTIME_DATA","deviceName":"$deviceName","timestamp":${System.currentTimeMillis()},"elevation":${uwbResult.elevation},"azimuth":${uwbResult.azimuth},"distance":${uwbResult.distance},"nlos":${uwbResult.nLos},"rssi":${uwbResult.rssi},"seqCount":${uwbResult.seqCount}}"""
-            
+
             Log.d("HomeViewModel", "送信JSON: $realtimeData")
             Log.d("HomeViewModel", "JSON長: ${realtimeData.length} bytes")
 
             try {
                 repository.sendData(realtimeData)
                 dataTransmissionCount++
-                connectionStatus = if (isFileSending) {
-                    "ファイル送信中... (データ送信数: $dataTransmissionCount)"
-                } else {
-                    "データ送信中 (送信数: $dataTransmissionCount)"
-                }
+                connectionStatus =
+                    if (isFileSending) {
+                        "ファイル送信中... (データ送信数: $dataTransmissionCount)"
+                    } else {
+                        "データ送信中 (送信数: $dataTransmissionCount)"
+                    }
                 Log.d("HomeViewModel", "リアルタイムデータ送信成功: count=$dataTransmissionCount")
-                
+
                 // 送信頻度をログ出力（10回おき）
                 if (dataTransmissionCount % 10 == 0) {
                     Log.i("HomeViewModel", "リアルタイムデータ送信状況: ${dataTransmissionCount}回送信完了")
@@ -266,7 +273,7 @@ class HomeViewModel : ViewModel(), SensingControlCallback {
             connectionStatus = "NearByRepository未初期化"
             Log.e("HomeViewModel", "NearByRepository is null")
         }
-        
+
         Log.d("HomeViewModel", "=== sendRealtimeData終了 ===")
     }
 

@@ -97,4 +97,4 @@ class NearByViewModel(private val nearByRepository: NearByRepository) : ViewMode
         // 発見のみを停止し、接続は維持
         nearByRepository.stopDiscoveryOnly()
     }
-} 
+}

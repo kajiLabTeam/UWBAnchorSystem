@@ -13,7 +13,6 @@ data class UWBResult(
     val pDoA1: Double = 0.0,
     val pDoA2: Double = 0.0,
 ) {
-
     companion object {
         fun header(): String {
             return "time,seqCount,nLos,distance,azimuth,azimuthFom,elevation,elevationFom,rssi,pDoA1,pDoA2"

@@ -9,14 +9,14 @@ import net.harutiro.uwbanchorsystem.feature.utils.DateUtils
 class SerialRepository {
     val serialApi = SerialApi()
 
-    fun connectDevice(context: Context)  {
+    fun connectDevice(context: Context) {
         serialApi.connectDevice(context = context)
     }
 
     fun startSession(
         onLineRead: (UWBResult?) -> Unit,
         onError: ((Throwable) -> Unit)? = null,
-    )  {
+    ) {
         serialApi.startListening(
             onLineRead = { line ->
                 Log.d("Main", "受信: $line")
@@ -33,14 +33,12 @@ class SerialRepository {
         println(message)
         // :で文字列を分割する
         val splitMessage = message.split(":")
-        if (splitMessage.size != 4)
-            {
-                return null
-            }
-        if (splitMessage[1] == "INFO ")
-            {
-                return null
-            }
+        if (splitMessage.size != 4) {
+            return null
+        }
+        if (splitMessage[1] == "INFO ") {
+            return null
+        }
         val raw = splitMessage[3].replace(" ", "")
         println(raw)
 
@@ -57,82 +55,77 @@ class SerialRepository {
                 .map { it.toInt(16).toByte() }
                 .toByteArray()
 
-        if (uciHeader.size == 4)
-            {
-                val count = uciHeader[3]
-                println(count)
-                if (count > 0)
-                    {
-                        if (
-                            uciHeader[0] == 0x62.toByte() &&
-                            uciHeader[1] == 0x00.toByte() &&
-                            uciHeader[3] > 0x1B.toByte()
-                        ) {
-                            println("kita")
+        if (uciHeader.size == 4) {
+            val count = uciHeader[3]
+            println(count)
+            if (count > 0) {
+                if (
+                    uciHeader[0] == 0x62.toByte() &&
+                    uciHeader[1] == 0x00.toByte() &&
+                    uciHeader[3] > 0x1B.toByte()
+                ) {
+                    println("kita")
 
-                            val seqCount = extractSeqCnt(uciPayload)
-                            println("seqCount: $seqCount")
+                    val seqCount = extractSeqCnt(uciPayload)
+                    println("seqCount: $seqCount")
 
-                            if (uciPayload[27] != 0x00.toByte() && uciPayload[27] != 0x1b.toByte())
-                                {
-                                    println("error")
-                                    return UWBResult(
-                                        time = 0,
-                                        seqCount = 0,
-                                        nLos = 0,
-                                        distance = 0,
-                                        azimuth = 0.0,
-                                        azimuthFom = 0,
-                                        elevation = 0.0,
-                                        elevationFom = 0,
-                                        rssi = 0.0,
-                                        pDoA1 = 0.0,
-                                        pDoA2 = 0.0,
-                                    )
-                                } else
-                                {
-                                    val measNLos = extractNlos(uciPayload)
-                                    println(measNLos)
-                                    var measDistance = extractDistance(uciPayload)
-                                    println(measDistance)
-                                    if (uciPayload[27] == 0x1b.toByte())
-                                        {
-                                            measDistance *= -1
-                                        }
-                                    val measAzimuth = convertQFormatToFloat(extractAzimuth(uciPayload), 9, 7, 1)
-                                    println(measAzimuth)
-                                    val measAzimuthFom = extractAzimuthFom(uciPayload)
-                                    println(measAzimuthFom)
-                                    val measElevation = convertQFormatToFloat(extractElevation(uciPayload), 9, 7, 1)
-                                    println(measElevation)
-                                    val measElevationFom = extractElevationFom(uciPayload)
-                                    println(measElevationFom)
-                                    val measDestAzimuth = convertQFormatToFloat(extractDestAzimuth(uciPayload), 9, 7, 1)
-                                    println(measDestAzimuth)
-                                    val measDestElevation = convertQFormatToFloat(extractDestElevation(uciPayload), 9, 7, 1)
-                                    println(measDestElevation)
-                                    val measPdoa1 = convertQFormatToFloat(extractPdoa1(uciPayload), 9, 7, 7)
-                                    println(measPdoa1)
-                                    val measPdoa2 = convertQFormatToFloat(extractPdoa2(uciPayload), 9, 7, 7)
-                                    println(measPdoa2)
-
-                                    return UWBResult(
-                                        time = DateUtils.getTimeStamp(),
-                                        seqCount = seqCount,
-                                        nLos = measNLos,
-                                        distance = measDistance,
-                                        azimuth = measAzimuth.toDouble(),
-                                        azimuthFom = measAzimuthFom,
-                                        elevation = measElevation.toDouble(),
-                                        elevationFom = measElevationFom,
-                                        rssi = extractRssi(uciPayload).toDouble(),
-                                        pDoA1 = measPdoa1.toDouble(),
-                                        pDoA2 = measPdoa2.toDouble(),
-                                    )
-                                }
+                    if (uciPayload[27] != 0x00.toByte() && uciPayload[27] != 0x1b.toByte()) {
+                        println("error")
+                        return UWBResult(
+                            time = 0,
+                            seqCount = 0,
+                            nLos = 0,
+                            distance = 0,
+                            azimuth = 0.0,
+                            azimuthFom = 0,
+                            elevation = 0.0,
+                            elevationFom = 0,
+                            rssi = 0.0,
+                            pDoA1 = 0.0,
+                            pDoA2 = 0.0,
+                        )
+                    } else {
+                        val measNLos = extractNlos(uciPayload)
+                        println(measNLos)
+                        var measDistance = extractDistance(uciPayload)
+                        println(measDistance)
+                        if (uciPayload[27] == 0x1b.toByte()) {
+                            measDistance *= -1
                         }
+                        val measAzimuth = convertQFormatToFloat(extractAzimuth(uciPayload), 9, 7, 1)
+                        println(measAzimuth)
+                        val measAzimuthFom = extractAzimuthFom(uciPayload)
+                        println(measAzimuthFom)
+                        val measElevation = convertQFormatToFloat(extractElevation(uciPayload), 9, 7, 1)
+                        println(measElevation)
+                        val measElevationFom = extractElevationFom(uciPayload)
+                        println(measElevationFom)
+                        val measDestAzimuth = convertQFormatToFloat(extractDestAzimuth(uciPayload), 9, 7, 1)
+                        println(measDestAzimuth)
+                        val measDestElevation = convertQFormatToFloat(extractDestElevation(uciPayload), 9, 7, 1)
+                        println(measDestElevation)
+                        val measPdoa1 = convertQFormatToFloat(extractPdoa1(uciPayload), 9, 7, 7)
+                        println(measPdoa1)
+                        val measPdoa2 = convertQFormatToFloat(extractPdoa2(uciPayload), 9, 7, 7)
+                        println(measPdoa2)
+
+                        return UWBResult(
+                            time = DateUtils.getTimeStamp(),
+                            seqCount = seqCount,
+                            nLos = measNLos,
+                            distance = measDistance,
+                            azimuth = measAzimuth.toDouble(),
+                            azimuthFom = measAzimuthFom,
+                            elevation = measElevation.toDouble(),
+                            elevationFom = measElevationFom,
+                            rssi = extractRssi(uciPayload).toDouble(),
+                            pDoA1 = measPdoa1.toDouble(),
+                            pDoA2 = measPdoa2.toDouble(),
+                        )
                     }
+                }
             }
+        }
         return null
     }
 
@@ -188,11 +181,11 @@ class SerialRepository {
         return String.format("%.${roundOf}f", frac).toDouble()
     }
 
-    fun stopSession()  {
+    fun stopSession() {
         serialApi.stopListening()
     }
 
-    fun close()  {
+    fun close() {
         serialApi.close()
     }
 }

@@ -394,4 +394,4 @@ private fun ConnectionApprovalDialog(
             }
         },
     )
-} 
+}

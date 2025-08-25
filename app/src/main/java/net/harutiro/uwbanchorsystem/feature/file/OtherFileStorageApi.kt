@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
-import net.harutiro.uwbanchorsystem.feature.utils.DateUtils
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter

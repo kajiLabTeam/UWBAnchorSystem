@@ -15,4 +15,4 @@ interface MinioApiService {
         @Part path: MultipartBody.Part,
         @Part file: MultipartBody.Part,
     ): Call<ResponseBody>
-} 
+}

@@ -27,4 +27,4 @@ class PreferencesManager private constructor(context: Context) {
     fun clearAll() {
         preferences.edit().clear().apply()
     }
-} 
+}
