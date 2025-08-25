@@ -20,7 +20,7 @@ data class SimpleUWBUiState(
     val connectedDeviceName: String = "",
     val pairedAntenna: String? = null,
     val lastReceivedMessage: String = "",
-    val savedDeviceName: String = "", // 保存された端末名
+    val savedDeviceName: String = "",
 )
 
 class SimpleUWBViewModel(
@@ -69,13 +69,14 @@ class SimpleUWBViewModel(
                     _uiState.value.copy(
                         connectionRequest = request,
                     )
-                
+
                 // Mac側で端末が保存された後、検索を停止
                 if (_uiState.value.isDiscovering) {
                     stopDiscovery()
-                    _uiState.value = _uiState.value.copy(
-                        statusMessage = "端末が登録されました。アンテナとの紐付けをお待ちください..."
-                    )
+                    _uiState.value =
+                        _uiState.value.copy(
+                            statusMessage = "端末が登録され接続されました。アンテナとの紐付けをお待ちください...",
+                        )
                 }
             }
         }

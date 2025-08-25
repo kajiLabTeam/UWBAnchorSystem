@@ -241,4 +241,19 @@ class NearByRepository private constructor(
             }
         }
     }
+
+    override fun onDeviceConnected(
+        endpointId: String,
+        deviceName: String,
+    ) {
+        Log.d("NearByRepository", "onDeviceConnected: $deviceName ($endpointId)")
+        // SimpleUWBViewModel用のコールバックに通知
+        onDeviceConnectedListener?.invoke(ConnectedDevice(endpointId, deviceName))
+    }
+
+    override fun onDeviceDisconnected(endpointId: String) {
+        Log.d("NearByRepository", "onDeviceDisconnected: $endpointId")
+        // SimpleUWBViewModel用のコールバックに通知
+        onDeviceDisconnectedListener?.invoke(endpointId)
+    }
 }

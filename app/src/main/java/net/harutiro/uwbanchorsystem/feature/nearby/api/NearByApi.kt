@@ -40,6 +40,14 @@ interface NearbyRepositoryCallback {
     fun onDeviceLost(endpointId: String)
 
     fun onConnectionRequested(request: ConnectionRequest)
+
+    // 接続成功・切断の通知を追加
+    fun onDeviceConnected(
+        endpointId: String,
+        deviceName: String,
+    )
+
+    fun onDeviceDisconnected(endpointId: String)
 }
 
 class NearByApi(
@@ -275,13 +283,19 @@ class NearByApi(
                 when (result.status.statusCode) {
                     ConnectionsStatusCodes.STATUS_OK -> {
                         remoteEndpointIds.add(endpointId)
+                        // 端末名を取得（保存されている場合）
+                        val deviceName = pendingConnections[endpointId]?.endpointName ?: "不明な端末"
                         callback.onConnectionStateChanged("接続成功: $endpointId")
+                        callback.onDeviceConnected(endpointId, deviceName)
+                        // 接続完了したので保留中接続情報を削除
+                        pendingConnections.remove(endpointId)
                     }
                     ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED,
                     ConnectionsStatusCodes.STATUS_ERROR,
                     -> {
                         remoteEndpointIds.remove(endpointId)
                         callback.onConnectionStateChanged("接続失敗: $endpointId")
+                        pendingConnections.remove(endpointId)
                     }
                 }
             }
@@ -289,6 +303,7 @@ class NearByApi(
             override fun onDisconnected(endpointId: String) {
                 remoteEndpointIds.remove(endpointId)
                 callback.onConnectionStateChanged("切断: $endpointId")
+                callback.onDeviceDisconnected(endpointId)
             }
         }
 
