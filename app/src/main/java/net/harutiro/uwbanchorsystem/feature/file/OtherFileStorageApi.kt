@@ -61,6 +61,18 @@ class OtherFileStorageApi(
         handler.post(runnable)
     }
 
+    // ファイルを初期化（クリア）する
+    fun clearFile() {
+        try {
+            val file = File(filePath)
+            if (file.exists()) {
+                file.delete()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     fun stop(): File {
         // 別スレッドを停止
         handler.removeCallbacks(runnable)

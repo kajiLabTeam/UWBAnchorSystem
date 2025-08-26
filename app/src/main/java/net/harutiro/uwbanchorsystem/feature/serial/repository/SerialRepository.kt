@@ -9,8 +9,8 @@ import net.harutiro.uwbanchorsystem.feature.utils.DateUtils
 class SerialRepository {
     val serialApi = SerialApi()
 
-    fun connectDevice(context: Context) {
-        serialApi.connectDevice(context = context)
+    fun connectDevice(context: Context): Result<Unit> {
+        return serialApi.connectDevice(context = context)
     }
 
     fun startSession(
@@ -183,6 +183,8 @@ class SerialRepository {
 
     fun stopSession() {
         serialApi.stopListening()
+        // センシング終了時にUSB接続も適切にクローズ
+        serialApi.close()
     }
 
     fun close() {

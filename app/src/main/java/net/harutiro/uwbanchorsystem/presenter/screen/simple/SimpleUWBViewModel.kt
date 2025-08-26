@@ -51,7 +51,9 @@ class SimpleUWBViewModel(
         nearByRepository.sensingControlCallback = this
 
         // SerialRepositoryの初期化
-        serialRepository.connectDevice(activity)
+        serialRepository.connectDevice(activity).onFailure { e ->
+            Log.e("SimpleUWBViewModel", "USB接続初期化エラー: ${e.message}", e)
+        }
     }
 
     private fun loadSavedDeviceName() {
@@ -218,6 +220,10 @@ class SimpleUWBViewModel(
 
     fun disconnectAll() {
         viewModelScope.launch {
+            // センシングも確実に停止
+            if (_uiState.value.isSensing) {
+                stopSensing(activity)
+            }
             nearByRepository.disconnectAll()
             _uiState.value =
                 _uiState.value.copy(
@@ -265,10 +271,27 @@ class SimpleUWBViewModel(
                 name = fileName,
                 queue = queue,
             )
+
+        // 既存ファイルをクリア（新しいセンシングセッション開始のため）
+        otherFileStorageApi?.clearFile()
         otherFileStorageApi?.saveAtBatch()
 
         // ヘッダーを作成
         queue.add(UWBResult.header())
+
+        // センシング開始前にUSB接続を再確認
+        val connectionResult = serialRepository.connectDevice(context)
+        if (connectionResult.isFailure) {
+            Log.e("SimpleUWBViewModel", "USB接続エラー: ${connectionResult.exceptionOrNull()?.message}")
+            viewModelScope.launch {
+                _uiState.value = _uiState.value.copy(
+                    isSensing = false,
+                    sensingStatus = "USB接続エラー: ${connectionResult.exceptionOrNull()?.message}",
+                    lastReceivedMessage = "USB接続に失敗しました"
+                )
+            }
+            return
+        }
 
         serialRepository.startSession(
             onLineRead = { line ->
@@ -279,6 +302,16 @@ class SimpleUWBViewModel(
                 // Mac側にリアルタイムデータを送信
                 sendRealtimeDataToMac(line)
             },
+            onError = { error ->
+                Log.e("SimpleUWBViewModel", "シリアル通信エラー: ${error.message}", error)
+                viewModelScope.launch {
+                    _uiState.value = _uiState.value.copy(
+                        isSensing = false,
+                        sensingStatus = "シリアル通信エラー: ${error.message}",
+                        lastReceivedMessage = "シリアル通信でエラーが発生しました"
+                    )
+                }
+            }
         )
     }
 
@@ -414,6 +447,9 @@ class SimpleUWBViewModel(
 
     override fun onCleared() {
         super.onCleared()
+        // センシングを停止してUSB接続をクローズ
+        serialRepository.stopSession()
+        serialRepository.close()
         nearByRepository.disconnectAll()
     }
 }

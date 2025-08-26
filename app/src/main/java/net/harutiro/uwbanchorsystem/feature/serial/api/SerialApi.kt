@@ -26,6 +26,9 @@ class SerialApi {
         baudRate: Int = 3_000_000,
         context: Context,
     ): Result<Unit> {
+        // 既存の接続をクリーンアップ
+        stopListening()
+        close()
         usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
 
         val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager)
@@ -59,6 +62,11 @@ class SerialApi {
         onLineRead: (String) -> Unit,
         onError: ((Throwable) -> Unit)? = null,
     ) {
+        // ポートが初期化されていない場合はエラーを返す
+        if (port == null) {
+            onError?.invoke(IllegalStateException("USB接続が初期化されていません"))
+            return
+        }
         val buffer = StringBuilder()
 
         usbIoManager =
@@ -93,9 +101,14 @@ class SerialApi {
      * 通信の受信を停止
      */
     fun stopListening() {
-        usbIoManager?.stop()
-        usbIoManager?.listener = null
-        usbIoManager = null
+        try {
+            usbIoManager?.stop()
+            usbIoManager?.listener = null
+        } catch (e: Exception) {
+            Log.w(TAG, "SerialInputOutputManager停止時にエラー: ${e.message}")
+        } finally {
+            usbIoManager = null
+        }
     }
 
     /**
