@@ -196,6 +196,14 @@ fun SimpleUWBScreen(
                 if (uiState.lastReceivedMessage.isNotEmpty()) {
                     MessageCard(message = uiState.lastReceivedMessage)
                 }
+
+                // センシング状態表示
+                if (uiState.sensingStatus.isNotEmpty()) {
+                    SensingStatusCard(
+                        status = uiState.sensingStatus,
+                        isSensing = uiState.isSensing,
+                    )
+                }
             }
         }
 
@@ -429,4 +437,57 @@ private fun ConnectionApprovalDialog(
             }
         },
     )
+}
+
+@Composable
+private fun SensingStatusCard(
+    status: String,
+    isSensing: Boolean,
+) {
+    Card(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    if (isSensing) {
+                        MaterialTheme.colorScheme.tertiaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    },
+            ),
+    ) {
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = if (isSensing) Icons.Default.Sensors else Icons.Default.RadioButtonUnchecked,
+                contentDescription = null,
+                tint =
+                    if (isSensing) {
+                        MaterialTheme.colorScheme.onTertiaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                modifier = Modifier.size(24.dp),
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = status,
+                style = MaterialTheme.typography.bodyMedium,
+                color =
+                    if (isSensing) {
+                        MaterialTheme.colorScheme.onTertiaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+            )
+        }
+    }
 }

@@ -197,6 +197,9 @@ class NearByApi(
     }
 
     // ファイル送信機能
+    private var fileTransferCallback: ((Int) -> Unit)? = null
+    private var fileCompleteCallback: ((Boolean, String) -> Unit)? = null
+
     fun sendFile(
         file: java.io.File,
         onProgress: (Int) -> Unit,
@@ -209,6 +212,9 @@ class NearByApi(
         }
 
         try {
+            fileTransferCallback = onProgress
+            fileCompleteCallback = onComplete
+
             val payload = Payload.fromFile(file)
             val client = Nearby.getConnectionsClient(activity)
 
@@ -229,16 +235,19 @@ class NearByApi(
                 client.sendPayload(endpointId, payload)
                     .addOnSuccessListener {
                         callback.onConnectionStateChanged("ファイル送信開始: ${file.name}")
-                        onProgress(0)
+                        onProgress(1) // 送信開始時は1%に設定
+                        Log.d(TAG, "ファイル送信開始: ${file.name}")
                     }
                     .addOnFailureListener { exception ->
                         callback.onConnectionStateChanged("ファイル送信失敗: ${exception.message}")
                         onComplete(false, "ファイル送信エラー: ${exception.message}")
+                        Log.e(TAG, "ファイル送信失敗: ${exception.message}")
                     }
             }
         } catch (e: Exception) {
             callback.onConnectionStateChanged("ファイル送信エラー: ${e.message}")
             onComplete(false, "ファイル送信エラー: ${e.message}")
+            Log.e(TAG, "ファイル送信エラー: ${e.message}")
         }
     }
 
@@ -337,16 +346,37 @@ class NearByApi(
                 when (update.status) {
                     PayloadTransferUpdate.Status.IN_PROGRESS -> {
                         val progress = (update.bytesTransferred * 100 / update.totalBytes).toInt()
+                        Log.d(TAG, "ファイル転送進捗: $progress% ($endpointId)")
                         callback.onConnectionStateChanged("転送中: $progress%")
+                        // HomeViewModelのプログレスコールバックを呼び出し
+                        fileTransferCallback?.invoke(progress)
                     }
                     PayloadTransferUpdate.Status.SUCCESS -> {
+                        Log.d(TAG, "ファイル転送完了: $endpointId")
                         callback.onConnectionStateChanged("転送完了: $endpointId")
+                        // 完了コールバックを呼び出し
+                        fileCompleteCallback?.invoke(true, "ファイル送信完了")
+                        // コールバックをクリア
+                        fileTransferCallback = null
+                        fileCompleteCallback = null
                     }
                     PayloadTransferUpdate.Status.FAILURE -> {
+                        Log.e(TAG, "ファイル転送失敗: $endpointId")
                         callback.onConnectionStateChanged("転送失敗: $endpointId")
+                        // 失敗コールバックを呼び出し
+                        fileCompleteCallback?.invoke(false, "ファイル送信失敗")
+                        // コールバックをクリア
+                        fileTransferCallback = null
+                        fileCompleteCallback = null
                     }
                     PayloadTransferUpdate.Status.CANCELED -> {
+                        Log.w(TAG, "ファイル転送キャンセル: $endpointId")
                         callback.onConnectionStateChanged("転送キャンセル: $endpointId")
+                        // キャンセルコールバックを呼び出し
+                        fileCompleteCallback?.invoke(false, "ファイル送信キャンセル")
+                        // コールバックをクリア
+                        fileTransferCallback = null
+                        fileCompleteCallback = null
                     }
                 }
             }
