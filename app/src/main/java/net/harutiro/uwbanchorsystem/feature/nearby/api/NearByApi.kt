@@ -58,10 +58,17 @@ class NearByApi(
 ) {
     private val remoteEndpointIds = mutableSetOf<String>()
     private val pendingConnections = mutableMapOf<String, ConnectionInfo>()
+    private val pendingConnectionTimestamps = mutableMapOf<String, Long>()
     private val TAG = "NearbyRepository"
 
     // 動的に変更可能なnickname
     private var currentNickname: String = "default"
+
+    // Discovery状態管理
+    private var isDiscovering = false
+
+    // 接続タイムアウト時間（ミリ秒）
+    private val CONNECTION_TIMEOUT_MS = 60000L // 60秒
 
     fun updateNickname(nickname: String) {
         currentNickname = nickname.ifEmpty { "未設定" }
@@ -86,6 +93,13 @@ class NearByApi(
 
     fun startDiscovery(nickname: String) {
         updateNickname(nickname)
+
+        // 既にDiscovery中の場合は何もしない
+        if (isDiscovering) {
+            callback.onConnectionStateChanged("既に検索中です")
+            return
+        }
+
         Nearby.getConnectionsClient(activity)
             .startDiscovery(
                 serviceId,
@@ -93,9 +107,11 @@ class NearByApi(
                 DiscoveryOptions.Builder().setStrategy(strategy).build(),
             )
             .addOnSuccessListener {
+                isDiscovering = true
                 callback.onConnectionStateChanged("発見開始 (端末名: $currentNickname)")
             }
             .addOnFailureListener {
+                isDiscovering = false
                 callback.onConnectionStateChanged("発見失敗")
             }
     }
@@ -106,6 +122,7 @@ class NearByApi(
 
     fun stopDiscovery() {
         Nearby.getConnectionsClient(activity).stopDiscovery()
+        isDiscovering = false
     }
 
     // 手動で特定のデバイスに接続リクエストを送信
@@ -127,6 +144,7 @@ class NearByApi(
         Nearby.getConnectionsClient(activity)
             .acceptConnection(endpointId, payloadCallback)
         pendingConnections.remove(endpointId)
+        pendingConnectionTimestamps.remove(endpointId)
         callback.onConnectionStateChanged("接続を承認: $endpointId")
     }
 
@@ -134,6 +152,7 @@ class NearByApi(
         Nearby.getConnectionsClient(activity)
             .rejectConnection(endpointId)
         pendingConnections.remove(endpointId)
+        pendingConnectionTimestamps.remove(endpointId)
         callback.onConnectionStateChanged("接続を拒否: $endpointId")
     }
 
@@ -151,6 +170,8 @@ class NearByApi(
         stopDiscovery()
         disconnectAll()
         pendingConnections.clear()
+        pendingConnectionTimestamps.clear()
+        isDiscovering = false
         callback.onConnectionStateChanged("全リセット")
     }
 
@@ -281,8 +302,12 @@ class NearByApi(
             ) {
                 // 手動承認のために接続情報を保存
                 pendingConnections[endpointId] = connectionInfo
+                pendingConnectionTimestamps[endpointId] = System.currentTimeMillis()
                 val request = ConnectionRequest(endpointId, connectionInfo)
                 callback.onConnectionRequested(request)
+
+                // タイムアウト処理を開始
+                startConnectionTimeout(endpointId)
             }
 
             override fun onConnectionResult(
@@ -305,6 +330,7 @@ class NearByApi(
                         remoteEndpointIds.remove(endpointId)
                         callback.onConnectionStateChanged("接続失敗: $endpointId")
                         pendingConnections.remove(endpointId)
+                        pendingConnectionTimestamps.remove(endpointId)
                     }
                 }
             }
@@ -402,7 +428,28 @@ class NearByApi(
             保留中接続: ${pendingConnections.size}
             現在のニックネーム: $currentNickname
             サービスID: $serviceId
+            Discovery状態: ${if (isDiscovering) "検索中" else "停止中"}
             """.trimIndent()
+    }
+
+    // 接続タイムアウト処理
+    private fun startConnectionTimeout(endpointId: String) {
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            // 接続がまだ保留中の場合はタイムアウト処理を実行
+            if (pendingConnections.containsKey(endpointId)) {
+                val timestamp = pendingConnectionTimestamps[endpointId] ?: 0
+                val elapsed = System.currentTimeMillis() - timestamp
+
+                if (elapsed >= CONNECTION_TIMEOUT_MS) {
+                    Log.w(TAG, "接続タイムアウト: $endpointId (経過時間: ${elapsed}ms)")
+                    // 接続を拒否
+                    Nearby.getConnectionsClient(activity).rejectConnection(endpointId)
+                    pendingConnections.remove(endpointId)
+                    pendingConnectionTimestamps.remove(endpointId)
+                    callback.onConnectionStateChanged("接続タイムアウト: $endpointId")
+                }
+            }
+        }, CONNECTION_TIMEOUT_MS)
     }
 
     // テスト用のPing送信機能

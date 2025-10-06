@@ -1,5 +1,6 @@
 package net.harutiro.uwbanchorsystem.presenter.screen.nearby
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,7 +24,7 @@ import net.harutiro.uwbanchorsystem.feature.nearby.api.DiscoveredDevice
 @Composable
 fun NearByScreen(
     modifier: Modifier = Modifier,
-    viewModel: NearByViewModel = viewModel(factory = NearByViewModelFactory(LocalContext.current as android.app.Activity)),
+    viewModel: NearByViewModel = viewModel(factory = NearByViewModelFactory(LocalActivity.current!!)),
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

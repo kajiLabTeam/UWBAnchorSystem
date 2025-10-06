@@ -29,6 +29,10 @@ data class SimpleUWBUiState(
     val savedDeviceName: String = "",
     val isSensing: Boolean = false,
     val sensingStatus: String = "",
+    // UWB情報
+    val uwbDistance: Int? = null,
+    val uwbAzimuth: Double? = null,
+    val uwbElevation: Double? = null,
 )
 
 class SimpleUWBViewModel(
@@ -50,10 +54,9 @@ class SimpleUWBViewModel(
         // センシング制御コールバックを設定
         nearByRepository.sensingControlCallback = this
 
-        // SerialRepositoryの初期化
-        serialRepository.connectDevice(activity).onFailure { e ->
-            Log.e("SimpleUWBViewModel", "USB接続初期化エラー: ${e.message}", e)
-        }
+        // USB接続は遅延初期化（センシング開始時のみ接続）
+        // これにより、Nearby Connectionsとの競合を回避
+        Log.d("SimpleUWBViewModel", "初期化完了: USB接続は遅延初期化します")
     }
 
     private fun loadSavedDeviceName() {
@@ -287,7 +290,7 @@ class SimpleUWBViewModel(
                 _uiState.value = _uiState.value.copy(
                     isSensing = false,
                     sensingStatus = "USB接続エラー: ${connectionResult.exceptionOrNull()?.message}",
-                    lastReceivedMessage = "USB接続に失敗しました"
+                    lastReceivedMessage = "USB接続に失敗しました",
                 )
             }
             return
@@ -296,7 +299,10 @@ class SimpleUWBViewModel(
         serialRepository.startSession(
             onLineRead = { line ->
                 if (line == null) return@startSession
-                Log.d("SimpleUWBViewModel", line.toString())
+
+                // UWBデータをパースして画面に表示
+                parseAndDisplayUWBData(line)
+
                 queue.add(line.toString())
 
                 // Mac側にリアルタイムデータを送信
@@ -308,10 +314,10 @@ class SimpleUWBViewModel(
                     _uiState.value = _uiState.value.copy(
                         isSensing = false,
                         sensingStatus = "シリアル通信エラー: ${error.message}",
-                        lastReceivedMessage = "シリアル通信でエラーが発生しました"
+                        lastReceivedMessage = "シリアル通信でエラーが発生しました",
                     )
                 }
-            }
+            },
         )
     }
 
@@ -442,6 +448,30 @@ class SimpleUWBViewModel(
         } catch (e: Exception) {
             Log.e("SimpleUWBViewModel", "CSVファイル検索エラー", e)
             return null
+        }
+    }
+
+    private fun parseAndDisplayUWBData(uwbResult: UWBResult) {
+        try {
+            // 距離と角度情報のみをログ出力
+            val logMessage = "距離: ${uwbResult.distance}mm, 方位角: ${
+                String.format(
+                    "%.2f",
+                    uwbResult.azimuth,
+                )
+            }°, 仰角: ${String.format("%.2f", uwbResult.elevation)}°"
+            Log.d("SimpleUWBViewModel", logMessage)
+
+            // UI状態を更新
+            viewModelScope.launch {
+                _uiState.value = _uiState.value.copy(
+                    uwbDistance = uwbResult.distance,
+                    uwbAzimuth = uwbResult.azimuth,
+                    uwbElevation = uwbResult.elevation,
+                    )
+            }
+        } catch (e: Exception) {
+            Log.e("SimpleUWBViewModel", "UWBデータパースエラー", e)
         }
     }
 

@@ -1,5 +1,6 @@
 package net.harutiro.uwbanchorsystem.presenter.screen.simple
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -54,7 +55,7 @@ fun SimpleUWBScreen(
     modifier: Modifier = Modifier,
     viewModel: SimpleUWBViewModel =
         viewModel(
-            factory = SimpleUWBViewModelFactory(LocalContext.current as android.app.Activity),
+            factory = SimpleUWBViewModelFactory(LocalActivity.current!!),
         ),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -202,6 +203,15 @@ fun SimpleUWBScreen(
                     SensingStatusCard(
                         status = uiState.sensingStatus,
                         isSensing = uiState.isSensing,
+                    )
+                }
+
+                // UWB情報表示（センシング中のみ）
+                if (uiState.isSensing && uiState.uwbDistance != null) {
+                    UWBDataCard(
+                        distance = uiState.uwbDistance,
+                        azimuth = uiState.uwbAzimuth,
+                        elevation = uiState.uwbElevation,
                     )
                 }
             }
@@ -437,6 +447,100 @@ private fun ConnectionApprovalDialog(
             }
         },
     )
+}
+
+@Composable
+private fun UWBDataCard(
+    distance: Int?,
+    azimuth: Double?,
+    elevation: Double?,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            ),
+    ) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Sensors,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary,
+                )
+                Text(
+                    text = "UWB測定データ",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            }
+
+            // 距離表示
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = "距離:",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                )
+                Text(
+                    text = if (distance != null) "${distance}mm" else "---",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+
+            // 方位角表示
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = "方位角:",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                )
+                Text(
+                    text = if (azimuth != null) String.format("%.2f°", azimuth) else "---",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+
+            // 仰角表示
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = "仰角:",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                )
+                Text(
+                    text = if (elevation != null) String.format("%.2f°", elevation) else "---",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+    }
 }
 
 @Composable
