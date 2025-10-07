@@ -1,7 +1,8 @@
 package net.harutiro.uwbanchorsystem.feature.utils
 
 import android.icu.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 class DateUtils {
     companion object {

@@ -239,6 +239,15 @@ class NearByRepository private constructor(
                 Log.d("NearByRepository", "センシング終了コマンド受信")
                 sensingControlCallback?.onStopSensingCommand()
             }
+            data == "CALIBRATION_COMPLETED" -> {
+                Log.d("NearByRepository", "キャリブレーション完了通知受信")
+                onMessageReceivedListener?.invoke(Message("キャリブレーションが完了しました", fromEndpointId))
+            }
+            data.startsWith("CALIBRATION_FAILED:") -> {
+                val errorMsg = data.removePrefix("CALIBRATION_FAILED:")
+                Log.d("NearByRepository", "キャリブレーション失敗通知受信: $errorMsg")
+                onMessageReceivedListener?.invoke(Message("キャリブレーションが失敗しました: $errorMsg", fromEndpointId))
+            }
         }
     }
 

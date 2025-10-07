@@ -287,11 +287,12 @@ class SimpleUWBViewModel(
         if (connectionResult.isFailure) {
             Log.e("SimpleUWBViewModel", "USB接続エラー: ${connectionResult.exceptionOrNull()?.message}")
             viewModelScope.launch {
-                _uiState.value = _uiState.value.copy(
-                    isSensing = false,
-                    sensingStatus = "USB接続エラー: ${connectionResult.exceptionOrNull()?.message}",
-                    lastReceivedMessage = "USB接続に失敗しました",
-                )
+                _uiState.value =
+                    _uiState.value.copy(
+                        isSensing = false,
+                        sensingStatus = "USB接続エラー: ${connectionResult.exceptionOrNull()?.message}",
+                        lastReceivedMessage = "USB接続に失敗しました",
+                    )
             }
             return
         }
@@ -311,11 +312,12 @@ class SimpleUWBViewModel(
             onError = { error ->
                 Log.e("SimpleUWBViewModel", "シリアル通信エラー: ${error.message}", error)
                 viewModelScope.launch {
-                    _uiState.value = _uiState.value.copy(
-                        isSensing = false,
-                        sensingStatus = "シリアル通信エラー: ${error.message}",
-                        lastReceivedMessage = "シリアル通信でエラーが発生しました",
-                    )
+                    _uiState.value =
+                        _uiState.value.copy(
+                            isSensing = false,
+                            sensingStatus = "シリアル通信エラー: ${error.message}",
+                            lastReceivedMessage = "シリアル通信でエラーが発生しました",
+                        )
                 }
             },
         )
@@ -464,10 +466,11 @@ class SimpleUWBViewModel(
 
             // UI状態を更新
             viewModelScope.launch {
-                _uiState.value = _uiState.value.copy(
-                    uwbDistance = uwbResult.distance,
-                    uwbAzimuth = uwbResult.azimuth,
-                    uwbElevation = uwbResult.elevation,
+                _uiState.value =
+                    _uiState.value.copy(
+                        uwbDistance = uwbResult.distance,
+                        uwbAzimuth = uwbResult.azimuth,
+                        uwbElevation = uwbResult.elevation,
                     )
             }
         } catch (e: Exception) {

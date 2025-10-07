@@ -223,7 +223,8 @@ class HomeViewModel : ViewModel(), SensingControlCallback {
         Log.d("HomeViewModel", "=== sendRealtimeData開始 ===")
         Log.d(
             "HomeViewModel",
-            "UWBResult: elevation=${uwbResult.elevation}, azimuth=${uwbResult.azimuth}, distance=${uwbResult.distance}, seqCount=${uwbResult.seqCount}",
+            "UWBResult: elevation=${uwbResult.elevation}, azimuth=${uwbResult.azimuth}, " +
+                "distance=${uwbResult.distance}, seqCount=${uwbResult.seqCount}",
         )
 
         // ファイル送信中はリアルタイムデータ送信をスキップ
@@ -245,7 +246,11 @@ class HomeViewModel : ViewModel(), SensingControlCallback {
             }
 
             // elevation、azimuthを含むJSONデータを作成（フォーマット改善）
-            val realtimeData = """{"type":"REALTIME_DATA","deviceName":"$deviceName","timestamp":${System.currentTimeMillis()},"elevation":${uwbResult.elevation},"azimuth":${uwbResult.azimuth},"distance":${uwbResult.distance},"nlos":${uwbResult.nLos},"rssi":${uwbResult.rssi},"seqCount":${uwbResult.seqCount}}"""
+            val realtimeData =
+                """{"type":"REALTIME_DATA","deviceName":"$deviceName",""" +
+                    """"timestamp":${System.currentTimeMillis()},"elevation":${uwbResult.elevation},""" +
+                    """"azimuth":${uwbResult.azimuth},"distance":${uwbResult.distance},""" +
+                    """"nlos":${uwbResult.nLos},"rssi":${uwbResult.rssi},"seqCount":${uwbResult.seqCount}}"""
 
             Log.d("HomeViewModel", "送信JSON: $realtimeData")
             Log.d("HomeViewModel", "JSON長: ${realtimeData.length} bytes")

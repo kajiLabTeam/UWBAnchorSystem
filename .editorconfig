@@ -1,2 +1,6 @@
 [*.{kt,kts}]
 ktlint_function_naming_ignore_when_annotated_with = Composable
+# Singletonパターンの INSTANCE プロパティを許可
+ktlint_standard_property-naming = disabled
+# パッケージ名の大文字（Entity等）を許可
+ktlint_standard_package-name = disabled
