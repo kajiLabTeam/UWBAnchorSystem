@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "net.harutiro.uwbanchorsystem"
+    namespace = "net.harutiro.uwbanchorsystemminio"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "net.harutiro.uwbanchorsystem"
+        applicationId = "net.harutiro.uwbanchorsystemminio"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
