@@ -245,12 +245,19 @@ class HomeViewModel : ViewModel(), SensingControlCallback {
                 return
             }
 
-            // elevation、azimuthを含むJSONデータを作成（フォーマット改善）
+            // elevation、azimuthを含むJSONデータを作成（iOS側の期待する形式に修正）
             val realtimeData =
                 """{"type":"REALTIME_DATA","deviceName":"$deviceName",""" +
-                    """"timestamp":${System.currentTimeMillis()},"elevation":${uwbResult.elevation},""" +
-                    """"azimuth":${uwbResult.azimuth},"distance":${uwbResult.distance},""" +
-                    """"nlos":${uwbResult.nLos},"rssi":${uwbResult.rssi},"seqCount":${uwbResult.seqCount}}"""
+                    """"timestamp":${System.currentTimeMillis()},"data":{""" +
+                    """"elevation":${uwbResult.elevation},""" +
+                    """"azimuth":${uwbResult.azimuth},""" +
+                    """"distance":${uwbResult.distance},""" +
+                    """"nlos":${uwbResult.nLos},""" +
+                    """"rssi":${uwbResult.rssi},""" +
+                    """"seqCount":${uwbResult.seqCount},""" +
+                    """"elevationFom":${uwbResult.elevationFom},""" +
+                    """"pDoA1":${uwbResult.pDoA1},""" +
+                    """"pDoA2":${uwbResult.pDoA2}}}"""
 
             Log.d("HomeViewModel", "送信JSON: $realtimeData")
             Log.d("HomeViewModel", "JSON長: ${realtimeData.length} bytes")
