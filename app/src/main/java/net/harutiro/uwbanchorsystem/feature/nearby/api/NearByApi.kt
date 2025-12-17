@@ -67,6 +67,18 @@ class NearByApi(
     // Discovery状態管理
     private var isDiscovering = false
 
+    // 広告状態管理
+    private var isAdvertising = false
+
+    // 自動再広告機能の有効/無効
+    var autoReAdvertiseEnabled: Boolean = true
+
+    // 自動接続承認機能の有効/無効（再接続時に自動で承認）
+    var autoAcceptConnectionsEnabled: Boolean = true
+
+    // 再広告の遅延時間（ミリ秒）
+    private val RE_ADVERTISE_DELAY_MS = 1000L // 1秒
+
     // 接続タイムアウト時間（ミリ秒）
     private val CONNECTION_TIMEOUT_MS = 60000L // 60秒
 
@@ -84,9 +96,11 @@ class NearByApi(
                 AdvertisingOptions.Builder().setStrategy(strategy).build(),
             )
             .addOnSuccessListener {
+                isAdvertising = true
                 callback.onConnectionStateChanged("広告開始 (端末名: $currentNickname)")
             }
             .addOnFailureListener {
+                isAdvertising = false
                 callback.onConnectionStateChanged("広告失敗")
             }
     }
@@ -118,6 +132,7 @@ class NearByApi(
 
     fun stopAdvertising() {
         Nearby.getConnectionsClient(activity).stopAdvertising()
+        isAdvertising = false
     }
 
     fun stopDiscovery() {
@@ -172,6 +187,7 @@ class NearByApi(
         pendingConnections.clear()
         pendingConnectionTimestamps.clear()
         isDiscovering = false
+        isAdvertising = false
         callback.onConnectionStateChanged("全リセット")
     }
 
@@ -300,14 +316,24 @@ class NearByApi(
                 endpointId: String,
                 connectionInfo: ConnectionInfo,
             ) {
-                // 手動承認のために接続情報を保存
+                // 接続情報を保存
                 pendingConnections[endpointId] = connectionInfo
                 pendingConnectionTimestamps[endpointId] = System.currentTimeMillis()
-                val request = ConnectionRequest(endpointId, connectionInfo)
-                callback.onConnectionRequested(request)
 
-                // タイムアウト処理を開始
-                startConnectionTimeout(endpointId)
+                // 自動承認が有効な場合は即座に承認
+                if (autoAcceptConnectionsEnabled) {
+                    Log.d(TAG, "自動接続承認: $endpointId (${connectionInfo.endpointName})")
+                    Nearby.getConnectionsClient(activity)
+                        .acceptConnection(endpointId, payloadCallback)
+                    callback.onConnectionStateChanged("自動承認: ${connectionInfo.endpointName}")
+                } else {
+                    // 手動承認のためにコールバックを呼び出し
+                    val request = ConnectionRequest(endpointId, connectionInfo)
+                    callback.onConnectionRequested(request)
+
+                    // タイムアウト処理を開始
+                    startConnectionTimeout(endpointId)
+                }
             }
 
             override fun onConnectionResult(
@@ -339,6 +365,11 @@ class NearByApi(
                 remoteEndpointIds.remove(endpointId)
                 callback.onConnectionStateChanged("切断: $endpointId")
                 callback.onDeviceDisconnected(endpointId)
+
+                // 自動再広告機能
+                if (autoReAdvertiseEnabled && remoteEndpointIds.isEmpty()) {
+                    scheduleAutoReAdvertise()
+                }
             }
         }
 
@@ -429,7 +460,44 @@ class NearByApi(
             現在のニックネーム: $currentNickname
             サービスID: $serviceId
             Discovery状態: ${if (isDiscovering) "検索中" else "停止中"}
+            広告状態: ${if (isAdvertising) "広告中" else "停止中"}
+            自動再広告: ${if (autoReAdvertiseEnabled) "有効" else "無効"}
+            自動承認: ${if (autoAcceptConnectionsEnabled) "有効" else "無効"}
             """.trimIndent()
+    }
+
+    // 自動再広告のスケジュール
+    private fun scheduleAutoReAdvertise() {
+        Log.d(TAG, "自動再広告: 接続が切断されたため、${RE_ADVERTISE_DELAY_MS}ms後に広告を再開します")
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            if (autoReAdvertiseEnabled && remoteEndpointIds.isEmpty()) {
+                performAutoReAdvertise()
+            }
+        }, RE_ADVERTISE_DELAY_MS)
+    }
+
+    // 自動再広告の実行
+    private fun performAutoReAdvertise() {
+        Log.d(TAG, "自動再広告: 広告を再開します (ニックネーム: $currentNickname)")
+        // 既存の広告を停止してから再開
+        Nearby.getConnectionsClient(activity).stopAdvertising()
+        Nearby.getConnectionsClient(activity)
+            .startAdvertising(
+                currentNickname,
+                serviceId,
+                connectionLifecycleCallback,
+                AdvertisingOptions.Builder().setStrategy(strategy).build(),
+            )
+            .addOnSuccessListener {
+                isAdvertising = true
+                callback.onConnectionStateChanged("自動再広告開始 (端末名: $currentNickname)")
+                Log.d(TAG, "自動再広告: 成功")
+            }
+            .addOnFailureListener { exception ->
+                isAdvertising = false
+                callback.onConnectionStateChanged("自動再広告失敗: ${exception.message}")
+                Log.e(TAG, "自動再広告: 失敗 - ${exception.message}")
+            }
     }
 
     // 接続タイムアウト処理
