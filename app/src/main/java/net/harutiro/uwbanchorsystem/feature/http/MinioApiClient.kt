@@ -7,7 +7,6 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
@@ -24,9 +23,10 @@ class MinioApiClient(private val context: Context) {
     private val PASSWORD = BuildConfig.MINIO_API_PASSWORD
 
     private val client: OkHttpClient by lazy {
-        val logging = HttpLoggingInterceptor().apply {
-            setLevel(HttpLoggingInterceptor.Level.BODY)
-        }
+        val logging =
+            HttpLoggingInterceptor().apply {
+                setLevel(HttpLoggingInterceptor.Level.BODY)
+            }
 
         OkHttpClient.Builder()
             .addInterceptor(logging)
@@ -46,7 +46,12 @@ class MinioApiClient(private val context: Context) {
         retrofit.create(MinioApiService::class.java)
     }
 
-    fun uploadFile(file: File, bucket: String, path: String, callback: (Boolean, String?) -> Unit) {
+    fun uploadFile(
+        file: File,
+        bucket: String,
+        path: String,
+        callback: (Boolean, String?) -> Unit,
+    ) {
         val requestBody = file.asRequestBody("application/octet-stream".toMediaTypeOrNull())
         val filePart = MultipartBody.Part.createFormData("file", file.name, requestBody)
 
@@ -55,24 +60,32 @@ class MinioApiClient(private val context: Context) {
         val pathPart = MultipartBody.Part.createFormData("path", path)
 
         val call = apiService.uploadFile(bucketPart, pathPart, filePart)
-        call.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                if (response.isSuccessful) {
-                    val responseString = response.body()?.string()
-                    Log.d(TAG, "Upload successful: $responseString")
-                    callback(true, responseString)
-                } else {
-                    val errorMessage = "Upload failed: ${response.code()} - ${response.message()}"
-                    Log.e(TAG, errorMessage)
+        call.enqueue(
+            object : Callback<ResponseBody> {
+                override fun onResponse(
+                    call: Call<ResponseBody>,
+                    response: Response<ResponseBody>,
+                ) {
+                    if (response.isSuccessful) {
+                        val responseString = response.body()?.string()
+                        Log.d(TAG, "Upload successful: $responseString")
+                        callback(true, responseString)
+                    } else {
+                        val errorMessage = "Upload failed: ${response.code()} - ${response.message()}"
+                        Log.e(TAG, errorMessage)
+                        callback(false, errorMessage)
+                    }
+                }
+
+                override fun onFailure(
+                    call: Call<ResponseBody>,
+                    t: Throwable,
+                ) {
+                    val errorMessage = "Upload error: ${t.message}"
+                    Log.e(TAG, errorMessage, t)
                     callback(false, errorMessage)
                 }
-            }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                val errorMessage = "Upload error: ${t.message}"
-                Log.e(TAG, errorMessage, t)
-                callback(false, errorMessage)
-            }
-        })
+            },
+        )
     }
-} 
+}

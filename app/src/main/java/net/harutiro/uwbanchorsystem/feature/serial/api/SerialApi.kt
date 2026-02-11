@@ -8,7 +8,6 @@ import com.hoho.android.usbserial.driver.UsbSerialProber
 import com.hoho.android.usbserial.util.SerialInputOutputManager
 
 class SerialApi {
-
     companion object {
         private const val TAG = "SerialApi"
     }
@@ -25,9 +24,11 @@ class SerialApi {
      */
     fun connectDevice(
         baudRate: Int = 3_000_000,
-        context: Context
+        context: Context,
     ): Result<Unit> {
-
+        // 既存の接続をクリーンアップ
+        stopListening()
+        close()
         usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
 
         val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager)
@@ -36,8 +37,9 @@ class SerialApi {
         }
 
         val driver = availableDrivers.first()
-        val connection = usbManager?.openDevice(driver.device)
-            ?: return Result.failure(Exception("USB接続に失敗しました"))
+        val connection =
+            usbManager?.openDevice(driver.device)
+                ?: return Result.failure(Exception("USB接続に失敗しました"))
 
         return try {
             port = driver.ports.first()
@@ -58,41 +60,55 @@ class SerialApi {
      */
     fun startListening(
         onLineRead: (String) -> Unit,
-        onError: ((Throwable) -> Unit)? = null
+        onError: ((Throwable) -> Unit)? = null,
     ) {
+        // ポートが初期化されていない場合はエラーを返す
+        if (port == null) {
+            onError?.invoke(IllegalStateException("USB接続が初期化されていません"))
+            return
+        }
         val buffer = StringBuilder()
 
-        usbIoManager = SerialInputOutputManager(port, object : SerialInputOutputManager.Listener {
-            override fun onRunError(e: Exception) {
-                Log.e(TAG, "SerialIOManagerエラー: ${e.message}")
-                onError?.invoke(e)
-            }
+        usbIoManager =
+            SerialInputOutputManager(
+                port,
+                object : SerialInputOutputManager.Listener {
+                    override fun onRunError(e: Exception) {
+                        Log.e(TAG, "SerialIOManagerエラー: ${e.message}")
+                        onError?.invoke(e)
+                    }
 
-            override fun onNewData(data: ByteArray) {
-                val receivedText = String(data)
-                buffer.append(receivedText)
+                    override fun onNewData(data: ByteArray) {
+                        val receivedText = String(data)
+                        buffer.append(receivedText)
 
-                var newlineIndex = buffer.indexOf("\n")
-                while (newlineIndex != -1) {
-                    val line = buffer.substring(0, newlineIndex).trimEnd('\r')
-                    Log.d(TAG, "受信: $line")
-                    onLineRead(line)
-                    buffer.delete(0, newlineIndex + 1)
-                    newlineIndex = buffer.indexOf("\n")
-                }
+                        var newlineIndex = buffer.indexOf("\n")
+                        while (newlineIndex != -1) {
+                            val line = buffer.substring(0, newlineIndex).trimEnd('\r')
+                            Log.d(TAG, "受信: $line")
+                            onLineRead(line)
+                            buffer.delete(0, newlineIndex + 1)
+                            newlineIndex = buffer.indexOf("\n")
+                        }
+                    }
+                },
+            ).apply {
+                start()
             }
-        }).apply {
-            start()
-        }
     }
 
     /**
      * 通信の受信を停止
      */
     fun stopListening() {
-        usbIoManager?.stop()
-        usbIoManager?.listener = null
-        usbIoManager = null
+        try {
+            usbIoManager?.stop()
+            usbIoManager?.listener = null
+        } catch (e: Exception) {
+            Log.w(TAG, "SerialInputOutputManager停止時にエラー: ${e.message}")
+        } finally {
+            usbIoManager = null
+        }
     }
 
     /**

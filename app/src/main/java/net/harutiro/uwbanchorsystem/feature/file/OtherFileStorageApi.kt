@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
-import net.harutiro.uwbanchorsystem.feature.utils.DateUtils
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
@@ -13,40 +12,40 @@ import java.io.PrintWriter
 class OtherFileStorageApi(
     private val context: Context,
     name: String,
-    private val queue: ArrayDeque<String>
+    private val queue: ArrayDeque<String>,
 ) {
-
-    //true=追記, false=上書き
+    // true=追記, false=上書き
     val fileAppend: Boolean = true
 
-    // 全てのfileの前につける名前（自由）
-    val fileNameBace: String = DateUtils.getNowDate()
-    var fileName: String = fileNameBace.plus(name)
+    // Mac側から送られたファイル名をメインとして使用
+    // デバイス名を含めたい場合は、Mac側で指定してもらう
+    var fileName: String = if (name.isNotEmpty()) name else "uwb_data"
 
     // 拡張子
     val extension: String = ".csv"
 
-    //内部ストレージのDocumentのURL
+    // 内部ストレージのDocumentのURL
     val filePath: String =
-        "${context.applicationContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)}/${fileName}${extension}"
+        "${context.applicationContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)}/${fileName}$extension"
 
     // Queueのデータをファイルに保存する周期
     val delayMillis: Long = 1000L
 
     // Handler のオブジェクトを生成
     val handler = Handler(Looper.getMainLooper())
-    val runnable = object : Runnable {
-        override fun run() {
-            // 1:コピー作成
-            val pressureCopy = queue.toArray()
-            // 2:本体をクリア
-            queue.clear()
-            // 3:コピーをファイルに書き込む
-            saveArrayDeque(pressureCopy)
-            // 指定時間毎に繰り返す
-            handler.postDelayed(this, delayMillis)
+    val runnable =
+        object : Runnable {
+            override fun run() {
+                // 1:コピー作成
+                val pressureCopy = queue.toArray()
+                // 2:本体をクリア
+                queue.clear()
+                // 3:コピーをファイルに書き込む
+                saveArrayDeque(pressureCopy)
+                // 指定時間毎に繰り返す
+                handler.postDelayed(this, delayMillis)
+            }
         }
-    }
 
     // 一行書き込むやつ．今回は使わない．
     fun writeText(text: String) {
@@ -62,7 +61,19 @@ class OtherFileStorageApi(
         handler.post(runnable)
     }
 
-    fun stop() : File {
+    // ファイルを初期化（クリア）する
+    fun clearFile() {
+        try {
+            val file = File(filePath)
+            if (file.exists()) {
+                file.delete()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun stop(): File {
         // 別スレッドを停止
         handler.removeCallbacks(runnable)
         return File(filePath)
@@ -76,5 +87,4 @@ class OtherFileStorageApi(
         }
         pw.close()
     }
-
 }

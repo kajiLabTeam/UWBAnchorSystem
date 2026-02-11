@@ -74,11 +74,14 @@ dependencies {
     testImplementation(kotlin("test"))
 
     // http
-    implementation (libs.retrofit)
-    implementation (libs.logging.interceptor)
-    implementation (libs.converter.gson)
+    implementation(libs.retrofit)
+    implementation(libs.logging.interceptor)
+    implementation(libs.converter.gson)
 
     // firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
+
+    // nearby
+    implementation(libs.play.services.nearby)
 }

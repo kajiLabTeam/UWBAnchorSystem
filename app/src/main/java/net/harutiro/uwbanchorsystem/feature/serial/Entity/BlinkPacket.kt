@@ -2,40 +2,40 @@ package net.harutiro.uwbanchorsystem.feature.serial.Entity
 
 import java.math.BigInteger
 
-data class BlinkPacket (
+data class BlinkPacket(
     val uCIRangingNotification: Int,
-    val uCIPayloadLength:Int,
-    val sequenceCounter:Long,
-    val sessionId:Long,
-    val rfu1:Int,
-    val rangingInterval:Long,
-    val measurementType:Int,
-    val rfu2:Int,
-    val macAddressIndicator8Bytes:String,
-    val sessionIdOfPrimarySession0ifSessionNotPartOfHybridUwbSession:Long,
-    val rfu3:Long,
-    val numberOfRangingMeasurement:Int,
-    val macAddress:String,
-    val status:Int,
-    val messageControl:Int,
-    val frameType:Int,
-    val nLos:Int,
-    val aoaAzimuth:Double,
+    val uCIPayloadLength: Int,
+    val sequenceCounter: Long,
+    val sessionId: Long,
+    val rfu1: Int,
+    val rangingInterval: Long,
+    val measurementType: Int,
+    val rfu2: Int,
+    val macAddressIndicator8Bytes: String,
+    val sessionIdOfPrimarySession0ifSessionNotPartOfHybridUwbSession: Long,
+    val rfu3: Long,
+    val numberOfRangingMeasurement: Int,
+    val macAddress: String,
+    val status: Int,
+    val messageControl: Int,
+    val frameType: Int,
+    val nLos: Int,
+    val aoaAzimuth: Double,
     val aoaAzimuthFOM: Double,
-    val aoaElevation:Double,
-    val aoaElevationFOM:Double,
-    val frameCounter:Long,
+    val aoaElevation: Double,
+    val aoaElevationFOM: Double,
+    val frameCounter: Long,
     val rxTimestamp: BigInteger,
-    val vendorSpecificLength:Int,
-    val vendorExtensionLength:Int,
-    val rssiRx1:Double,
-    val rssiRx2:Double,
-    val numberOfPDoA:Int,
-    val pDoA1:Double,
-    val pDoA2:Double,
-    val antennaPairInfo:Long,
-    val wifiCoexStatus:Int,
-    val authenticityInfoPresence:Int,
+    val vendorSpecificLength: Int,
+    val vendorExtensionLength: Int,
+    val rssiRx1: Double,
+    val rssiRx2: Double,
+    val numberOfPDoA: Int,
+    val pDoA1: Double,
+    val pDoA2: Double,
+    val antennaPairInfo: Long,
+    val wifiCoexStatus: Int,
+    val authenticityInfoPresence: Int,
 ) {
     override fun toString(): String {
         return """
@@ -73,13 +73,12 @@ data class BlinkPacket (
               antennaPairInfo = $antennaPairInfo
               wifiCoexStatus = $wifiCoexStatus
               authenticityInfoPresence = $authenticityInfoPresence
-        """.trimIndent()
+            """.trimIndent()
     }
 }
-
 
 data class BlinkPacketField<T>(
     val name: String,
     val length: Int,
-    val transform: (ByteArray) -> T
+    val transform: (ByteArray) -> T,
 )
