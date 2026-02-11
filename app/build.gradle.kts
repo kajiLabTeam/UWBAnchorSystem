@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
-    id("com.google.gms.google-services")
+//    id("com.google.gms.google-services")
 }
 
 android {
@@ -79,8 +79,8 @@ dependencies {
     implementation(libs.converter.gson)
 
     // firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
+//    implementation(platform(libs.firebase.bom))
+//    implementation(libs.firebase.analytics)
 
     // nearby
     implementation(libs.play.services.nearby)
